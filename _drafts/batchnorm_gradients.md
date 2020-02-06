@@ -1,6 +1,6 @@
 Everyone loves Batch Norm. It often improves training, fool proofs your initialization and learning rate selection, and often even improve generalization performance. [Recent work][https://openreview.net/pdf?id=SyMDXnCcF7] showed that, perhaps surprising, Batch Normalization, can yield exploding gradients. The explanation was very technical however.
 
-**TL;DR** Inserting Batch Norm into a network means that in the forward pass each neuron is divided by its standard deviation, $\sigma$, computed over a minibatch of samples. In the backward pass, gradients get divided by the same $\sigma$. In ReLU netwoks, we can approximate $\sigma \approx \frac{\pi}{\pi-1} \approx 0.8$. Since this occurs at each layer, gradient norms grow like $\frac{\pi}{\pi-1}^L$ with depth.
+**TL;DR** Inserting Batch Norm into a network means that in the forward pass each neuron is divided by its standard deviation, $\sigma$, computed over a minibatch of samples. In the backward pass, gradients get divided by the same $\sigma$. In wide ReLU networks, we can approximate $\sigma \approx \frac{\pi}{\pi-1} \approx 0.8$. Since this occurs at each layer, gradient norms grow like $\frac{\pi}{\pi-1}^L$ with depth.
 
 ## Numerical Simulation in Random Networks
 Before the actual calculation, let's just run a simulation to show that inserting Batch Norm into a random network actually can cause gradients to explode.
@@ -90,58 +90,67 @@ To derive $dE/dz$ from $dE/dy$,
 #### Approximation 3: $\llangle \sigma^2 \rrangle \approx \frac{\pi-1}{\pi}$
 #### Approximation 4: $\llangle \frac{1}{\sigma^2} \rrangle \approx \frac{1}{\llangle \sigma^2\rrangle}$ -->
 
-#### Approximation 1: $\frac{dE}{dy} \approx \frac{1}{\sigma} \frac{dE}{dz}$
-Essentially we are going to argue that the terms that come from backpropagating through $\mu$ and $\sigma$ don't actually matter at initialization time. First we'll show this with numerical simulation.
+#### Approximation 1: $\langle \frac{dE}{dz} \rangle \approx \langle z \frac{dE}{dz} \rangle \approx 0$
+We are going to argue that $\langle \frac{dE}{dz} \rangle$, the term from backpropagating through $\mu$, and $\langle z \frac{dE}{dz} \rangle$, the term from backpropagating through $\sigma$, are nearly zero at initialization time, except possibly in the last layer.
 
-We can also provide a handwavy arguement.
+We extend  the gradient independence assumption to assume that, over the minibatch distribution, forward pass quantities are independent from backward pass quantities. With this assumption we have: $\langle z \frac{dE}{dz} \rangle \approx \langle z \rangle \langle \frac{dE}{dz}  \rangle$. Basically the gradient w.r.t. $z$ is independent of the value of $z$ itself.
 
-To argue this we extend to the gradient independence assumption to assume that over the minibatch distribution, forward pass quantities are independent from backward pass quantities. Speficially we will assume $\langle z \frac{dE}{dz} \rangle \approx \langle z \rangle \langle dE/dz \rangle$ and $\langle f'(z) dE/dy \rangle \approx \langle f'(z) \rangle \langle dE/dy \rangle$.
-
-With this assumption the 3rd term, which comes from backpropagating through $\sigma$, is roughly zero. (Batch Norm explicity requires $\langle z \rangle=0$):
-$$ \langle z \frac{dE}{dz} \rangle \approx \langle z \rangle \langle dE/dz \rangle = 0$$
-
-We can also argue the 2nd term is zero. Without any assumptions, we can show that gradients w.r.t. $y$ are exactly zero:
+Now we need to show that the average gradient $\langle \frac{dE}{dz}  \rangle$ is roughly zero. Without any assumptions, we can show that gradients $\frac{dE}{dy}$ are exactly zero mean in a Batch Normalized net:
 $$\langle \frac{dE}{d\mathbf{y}} \rangle = \frac{1}{\sigma} \cancelto{0}{\langle \frac{dE}{d\mathbf{z}} - \langle} \frac{dE}{d\mathbf{z}} \rangle \rangle - \frac{1}{\sigma} \cancelto{0}{\langle \mathbf{z} \rangle} \circ \langle \mathbf{z} \circ \frac{dE}{d\mathbf{z}} \rangle = 0$$
+Now we can use the backwards pass equations to write the gradient for $z_l$ using the gradient for $y_{l+1}$:
+$$\frac{dE}{dz_i} = \sum_{j} f'(z_i) W^T_{ij} dE/dy_j $$
 
-We can write $\frac{dE}{dz_i} = \sum_{j} f'(z) W^T_{ij} dE/dy_j$. Now comes the handwaving. We are going to assume that $f'(z) \perp dE/dy$. This can be seen as an extension of the gradient independence assumption. so we can average this over the minibatch:
+Now here comes the extendend gradient independence assumption. If $dE/dy_j$ are independent of $W$ and $f'$, then we can write this sum as:
 $$ \langle \frac{dE}{dz_i} \rangle \approx \sum_{j} \langle f'(z) \rangle W^T_{ij} \langle dE/dy_j \rangle = 0$$
 
 Note that this explanation doesn't really hold up in the last layer ($dE/dz$ was zero only if there was a Batch Norm layer afterwards to center gradients).
 
- It's understandable if you don't like these assumptions. Isn't the reason backprop is effective is the fact that $dE/dz$ and $z$ are correlated? Yes, but basically we hope there is enough "randomness" here.
-
 #### Approximation 2: $\sigma^2 \approx \frac{\pi-1}{\pi}$
-In some sense this is the heart of the calculation. If $\sigma$ is typically less than 1, gradients will be amplified at each layer. Again, we'll just use a simulation to show this at first.
+Calculating $\sigma$ is in some ways the heart of our whole calculation. In the previous section we argued that $dE/dy \approx \frac{1}{\sigma} dE/dz$. We also argued that the combination of the matrix multiplication layer and nonlinearity layer preserve gradient norms on average. So the key thing determining how the typical size of gradients backpropagates through layers of a network is goign to be $\sigma$. For ReLU we'll see that $\sigma = 0.8$ so gradients grow exponentially by a factor of $1/0.8$
 
-Our essential assumption will be analogous to the mean-field assumptions. This time, we assume that over the sample distribution elements of $x$ are independent random variables. This implies that $z$ is a gaussian, and we know it is zero mean and unit variance.
+To do this, we're going to make two a physics-style assumptions. First we'll do is assume that $\sigma$, the minibatch variance of $y$, is a *self-averaging* quantity: this means we assume that every $y$ has the same minibatch variance. This will be helpful as we can compute the average
+
+. (Actually it follows from the mean-field assumption, but im not sure how to Intuitively justify it without getting bogged down in eigenvalues of random matrix products. So let's just take it as another independent assumption.)
+
+
+In particular we will apply a *mean-field* calculation: this means we will assume that, that over the minibatch distribution, elements of $x$ are independent random variables.
+
+The first thing this does for us is that it tells us $\sigma$, the minibatch variance of $y$, is a *self-averaging* quantity: this means we assume that every $y$ has the same minibatch variance. (Actually it follows from the mean-field assumption, but im not sure how to Intuitively justify it without getting bogged down in eigenvalues of random matrix products. So let's just take it as another independent assumption.)
+
+Since $y$ is a sum of $N$ independent random variables, it will have a gaussian distribution, at least if your network is wide enough. And since $z$ is just a centered and scaled version of $y$, it too will be Gaussian, with 0 mean and unit variance.
+
+We now have all that we need to calculate the variance of $x$, which is simply a rectified version of $z$. In particular it is:
+<!-- $$ \langle x^2 \rangle - \langle x \rangle ^2 = \frac{1}{2\pi} \int_{-\infty}^{+\infty} f(z)^2 e^{-z^2/2} dz - \left[\frac{1}{2\pi} \int_{-\infty}^{+\infty} f(z) e^{-z^2/2} \right]^2 dz $$ -->
+
+$$ \langle x^2 \rangle - \langle x \rangle^2 = \int_{-\infty}^{+\infty} f(z)^2 \mathcal{D}z - \left[\int_{-\infty}^{+\infty} f(z) \mathcal{D}z \right]^2 $$
+This notation means that each integral is an expectation over a unit Gaussian distribution.
+
+This is great because we can easily calculate both of these terms. The first term is just $\frac{1}{2}$ (half the variance of a unit Gaussian, which by definition has variance 1). The 2nd term is $\frac{1}{2\pi}$. This follows from directly integration using the fact that $\int z e^{-z^2/2} dz = e^{-z^2/2}$. So the minibatch varaince of $x$ is just going to be $\frac{\pi}{2(\pi-1)}$. Under our mean-field assumption, we have the result that *every* $x$ has the same minibatch variance.
+
+How does all of this relate to $\sigma$, the minibatch variance of $y$? Here is where we use our *self-averaging* approximation. We assume that not just every $x$ has the same variance, but every $y$ has the same variance. The intuitive justification is that since $y$ is the sum of $N$ random variables, each of which s
+
+Because $y = Wx$. I think it will be easiest to swap to index notation
+
+ We can compute easy compute the expected variance:
+$$ \llangle \langle y^2_i \rangle - \langle y_i \rangle^2 \rrangle = \$$
+
+We'll consider just a single y, and recall that every $x$ has the same distribtuion.
+
+$$ \sigma^2 = \langle y^2 \rangle - \langle y \rangle^2 = 2 (\langle x^2 \rangle - \langle x \rangle^2) = \frac{\pi}{\pi-1}$$
 
 
 
-We'll use a simulation at this point.
-
-The critical observation is that the variance of each $y$ is nearly the same and it is roughly $ 0.8 $. At this point we could pack things up. Fair enough, but let's try to intuitively see why this is going on.
-
-Our essential modeling assumption will be that $x$ at every layer are IID variables. With this assumption, well get
 
 #### Result: $\llangle \frac{dE}{dy} \rrangle \approx \frac{\pi}{\pi-1} \llangle \frac{dE}{dz} \rrangle$
 
-1. Every $z$ is unit Gaussian over samples
-2. $x=f(z)$ so the variance of every $x$ can be computed via a simple gaussian integral
-3. $y=wx$ so the expected variance of $y$is twice that of $x$
-4. fluctuations of $y$ are small so we replace $\llangle 1 / sigma \rangle \approx \frac{1}{ \langle \sigma^2 \rangle }$
-
+Gradients grow in earlier layers. Of course, we can measure this.
 
 ## Normalized Preactivations Imply Exploding Gradients?
+To get some intuition, we'll actually look at the forward pass of a vanilla and Batch Normalized net.
 
-## Does this matter?
-<!-- #### Matrix Multiplication ($y^l = W x^{l-1}$):
-One nice thing about averaging over $W$ is that the individual elements of vectors all have the same value: $ \llangle y_i^2 \rrangle = \frac{1}{N} \llangle |y|^2 \rrangle$. We will therefore be somewhat cavalier with our notation: When examining averages, this means any particular value will be the same.
+go back to the vanilla net. We'll look at the distribtuion of preactivations in later layers. Interestingly each one gets a mean value which grows with depth. Normalization completely changes this pciture.
 
-$$ \llangle \tilde{x}_{l-1}^2 \rrangle = \sum_{jk} \llangle W_{ij} W_{ik} \rrangle \llangle (\tilde{y}^{l}_i)^2 \rrangle
-$$
+What does this have to do with gradients? Well by normalizing, you're basically requiring the nonlinearity actually gets used. Normalizing every preactivation ensures you are now implementing some crazy nonlinear function.
 
-$$ \boxed{\llangle \tilde{x}_{l-1}^2 \rrangle = 2 \llangle \tilde{y}_{l}^2 \rrangle}$$
 
-#### Activation ($x^l = f(z^l)$):
-
-$$ \boxed{\llangle \tilde{z}_{l}^2 \rrangle = \frac{1}{2} \llangle \tilde{x}_{l}^2 \rrangle} $$ -->
+## Does this matter for Training?
