@@ -17,7 +17,7 @@ $$ \require{cancel} $$
 
 Almost everyone who trains deep nets seems to love [Batch Norm](https://arxiv.org/pdf/1502.03167.pdf). Understandably so, as it regularly reduces training times, sensitivity to parameter initialization, and sensitivity to learning rate selection. Basically it helps "fool-proof" deep network training. And as an added benefit, it often improves final test-time performance.
 
-However, as with many aspects of deep learning, a precise reason *why* Batch Norm confers these benefits remains elusive. [Recent work](https://openreview.net/pdf?id=SyMDXnCcF7) by Yang et. al. has taken one step forwards by examining the behavior of Batch Norm in random networks, i.e. at initialization time. They show that inserting Batch Norm into a network can actually cause gradients to explode exponentially with depth, at least at initialization time. This result may seem pretty surprising, as you might think that having quantities explode or decay exponentially would only make training harder, and would therefore be something that should be avoided, not embraced.
+However, as with many aspects of deep learning, a precise reason *why* Batch Norm confers these benefits remains elusive. [Recent work](https://openreview.net/pdf?id=SyMDXnCcF7) by Yang et. al. has taken one step forwards by examining the behavior of Batch Norm in random networks, i.e. at initialization time. They show that inserting Batch Norm into a network can actually cause gradients to explode exponentially with depth, at least at initialization time. This result may seem pretty surprising; having any quantity explode or decay exponentially with depth would only seem to make training harder, not easier.
 
 In this post, we are going to provide an alternate derivation for the exploding gradient observation. Now, if you would be satisfied with nothing less than a perfectly rigorous, detailed, and lengthy mathematical derivation of this phenomenon you should check out their [paper](https://openreview.net/pdf?id=SyMDXnCcF7). If you're like me and just want a more intuitive explanation (but still gives quantitative predictions), stick around for the rest of this post!
 
@@ -25,32 +25,38 @@ In this post, we are going to provide an alternate derivation for the exploding 
 
 **TL;DR** Inserting Batch Norm into a network means that in the forward pass each neuron is divided by its standard deviation, $\sigma$, computed over a minibatch of samples. In the backward pass, gradients get divided by the same $\sigma$. In networks with ReLU nonlinearity, we can actually approximate the standard deviation as $\sigma \approx \sqrt{\frac{\pi}{\pi-1}} \approx 0.82$, at least at initialization time when the weights are random. Since this occurs at every layer, gradient norms in early layers are roughly $\left(\frac{1}{0.82}\right)^L$ times larger than gradient norms in layer $L$.
 
-## Numerical Simulation in Random Networks
-Before our calculation, let's just run a simulation to show that Batch Norm can actually cause "exploding gradients". We'll initialize a boring old 10 layer, feedforward, fully connected network of uniform layer width $N=1024$. We're using the ReLU nonlinearity so we'll initialize weights with Kaiming initialization (every element of $W$ is drawn independently an $\mathcal{N}(0,\sqrt{2/N})$ distribution). We'll call this our "vanilla" network:
+## Numerical Simulation (Gradients really do explode)
+Before our calculation, let's just empirically compute gradients in a net with and without Batch Norm.
+
+First let's create a boring old 10 layer, feedforward, fully connected network of uniform layer width $N=1024$. We're using the ReLU nonlinearity so we'll initialize weights with [Kaiming initialization](https://arxiv.org/pdf/1502.01852.pdf) (sample every element of $W$ from a zero mean Gaussian with variance $\sqrt{2/N}$). We'll call this our "vanilla" network:
 
 <p align="center">
-  <img width="400" height="200" src="/assets/vanilla_net.png">
+  <img width="600" height="200" src="/assets/vanilla_net.png">
 </p>
 
-We generate 512 Gaussian white noise input vectors $\{\mathbf{x}_0(t) \in {\rm I\!R}^{1024}:t=1,2,...,512\}$ and generate a random linear loss: $E = \sum_{t=1}^{512} \mathbf{w} \cdot \mathbf{x}_{10}(t) \quad \mathbf{w} \sim \mathcal{N}(0,1)$. (We use the same $\mathbf{w}$ for all outputs $\mathbf{x}_{10}(t)$).
+Our inputs to the net will be 512 Gaussian white noise vectors $\{ \mathbf{x}_0(t): t = 1,2,...,512 \}$. We'll compute a linear loss over the network's outputs: $E = \sum_{t=1}^{512} \mathbf{w} \cdot \mathbf{x}_{10}(t)$. We choose $\mathbf{w}$ by drawing it from a unit Gaussian. Now we have everything we need to compute the gradients $\frac{dE}{d\mathbf{x}_l}$ at each layer $l$ in the vanilla network (We'll use Pytorch to automate this process for us).
 
-
-We use PyTorch to automatically compute the derivatives $dE/d\mathbf{x}_l(t)$ at each layer $l$ and for every input $t$. This gives us a $512 \times 1024$ tensor of gradients at each layer. We then take that exact network, loss, and dataset, but this time inserting Batch Normalization before the ReLU in every layer, and recompute gradients:
+Now let's take that exact network, loss, and set of input vectors, but insert Batch Normalization before the ReLU in every layer:
 
 <p align="center">
-  <img width="400" height="200" src="/assets/bn_net.png">
+  <img width="800" height="200" src="/assets/bn_net.png">
 </p>
 
-We visualize the gradient histograms for the Vanilla and Batch Norm net at each layer. In the Vanilla network, the gradient histograms are basically the same in every layer. However, after inserting Batch Norm, the gradients actually grow with decreasing layer. In fact, the widths of these histograms grow *exponentially*.
+Again we can use PyTorch to compute gradients $\frac{dE}{d\mathbf{x}_l}$ at each layer $l$. Now for the results, let's visualize the gradient histograms in each layer for the Vanilla and Batch Norm net:
 
 <p align="center">
   <img width="400" height="200" src="/assets/bn_gradient_simulation.png">
 </p>
 
+In the Vanilla network, the gradient histograms are basically the same in every layer. However, after inserting Batch Norm, the gradients actually grow with decreasing layer. In fact, the widths of these histograms grow *exponentially*. Even in this extremely simplified setting Batch Norm is doing something wierd...
+
+## Background: Gradients in Batch Normalized Nets
+If we're going to explain what is going here, let's first
+
+## *Typical* Gradients in Batch Normalized Nets
 
 
-
-## Typical Gradients in a Vanilla Net
+<!-- ## Typical Gradients in a Vanilla Net
 We want to see how the "typical scale" of gradients, roughly the width of each layer's gradient histogram, is changed by inserting Batch Norm into a randomly initialized deep network. In the simulation we saw that for vanilla nets this width is the same in each layer. This is expected. The original Kaiming paper argued this should be true.
 
  We'll show this first, this calculation will be used for the Batch Norm calculation anyways.
@@ -62,10 +68,10 @@ More precisely, we will be interested in how:
 $$ \lllangle \left|\frac{dE}{ d\mathbf{x}_l}\right|^2 \rrrangle $$
 
 <!-- $$ \left \llangle \left|\frac{dE}{ d\mathbf{x}_l}\right|^2 \right \rrangle $$ -->
-
+<!--
 propagates through layers of network.
 
-Our basic strategy will be to first derive the backwards pass for each of the 3 modules in each layer of the Batch Norm nets. We will then average these over weights.
+Our basic strategy will be to first derive the backwards pass for each of the 3 modules in each layer of the Batch Norm nets. We will then average these over weights. -->
 
 <!--
  Our general strategy will be:
@@ -75,7 +81,7 @@ Our basic strategy will be to first derive the backwards pass for each of the 3 
 
 We will make a number of simplifying assumptions for our calculations: we examine fully connected network with rectifying nonlinearity, initialized with Kaiming initialization. We also assume the inputs are Gaussian white noise. -->
 
-Even after a lot of simplification, the backwards pass equations shown in the previous section are pretty ugly. They don't give a very intuitive feel for how gradients are modified by the Batch Norm layer. Also they depend on the precise configuration of $W$ which are random variables. So to gain some insight, we will compute the average over weights.
+<!-- Even after a lot of simplification, the backwards pass equations shown in the previous section are pretty ugly. They don't give a very intuitive feel for how gradients are modified by the Batch Norm layer. Also they depend on the precise configuration of $W$ which are random variables. So to gain some insight, we will compute the average over weights.
 
 Since the W are independent random variables in each layer, we would ideally get some set of equations that look like this:
 
@@ -90,10 +96,8 @@ I'll assume you're mostly familiar. If you want a tutorial on how to get these, 
 
 #### ReLU Activation
 
-#### Gradients are Preserved
+#### Gradients are Preserved -->
 
-
-## Typical Gradients with Batch Norm
 In some sense, 2/3 of the work is done. We just need to extend the argument in the previous section to determine the impact of the Batch Norm layer. In a much more practical sense, most of the work is still to come as backpropagating through the normalization layer is much more complicated.
 
 For this calculation we have to be careful in distinguishing two sorts of averages. We indicate a *minibatch* average using with single brackets $\langle \cdot \rangle$ and as before indicate a *weight* average using double brackets $\llangle \cdot \rrangle$
