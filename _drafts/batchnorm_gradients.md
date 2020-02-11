@@ -167,17 +167,96 @@ We're in the home stretch. Squaring then averaging the final equation over weigh
 
 $$ \lllangle \left(\frac{dE}{dx_{l-1}}\right)^2 \rrrangle \approx \lllangle \frac{1}{\sigma_l^2} \rrrangle \lllangle \left(\frac{dE}{dx_{l}}\right)^2 \rrrangle$$
 
-All that remains is to compute $\llangle (1/\sigma_l)^2 \rrangle$, the typical inverse of the minibatch variance of an element of $\mathbf{y}$. This is still a little complicated, but at least we know the final answer from our simulations; it be about $1.2$ because in our experiments the widths of the histograms grew by this much at each layer. Let's try to gain some intuition by revisiting the original experiment. We'll look at the distribution of $\mathbf{x},\mathbf{y}$ and $\mathbf{z}$ over samples in the 5th layer of our Batch Normalized network.
+All that remains is to compute $\llangle (1/\sigma_l)^2 \rrangle$, the expected inverse variance of an element of $\mathbf{y}_l$. While we already know that $\llangle (1/\sigma_l)^2 \rrangle \approx 1.2$ from our simulations (this is the factor by which the width of gradient histograms grew every layer), let's calculate it analytically.
 
-<p align="center">
-  <img width="400" height="150" src="/assets/distributions.png">
-</p>
+**Step 1:** We argue that $\sigma^2_l$ is a *self-averaging* quantity and its just twice the expected variance of $x$ from the same layer.
 
-It appears that every element of $\mathbf{z}$ is not just zero mean and unit variance (which is required by Batch Norm) but that all $z_i$ are Gaussian distributed. And since $x_i$ are just rectified versions of $z_i$, they appear to have rectified Gaussian distributions. Interestingly elements of $\mathbf{y}$ seem to have a mean that depends on which element you choose. However if we subtract off the mean of every $y$ we can see the variance of all the $y_i$'s are nearly identical.
+1) eigenvalues
+2) numerical simulation
+
+By self-averaging I mean that for nearly every configuration of weights, $y$ will have roughly the same minibatch variance:
+
+$$ \sigma^2 = \langle y^2 \rangle - \langle y \rangle^2 \approx \llangle \langle y^2 \rangle - \langle y \rangle^2 \rrangle $$
+
+So instead of computing $\llangle (1/\sigma_l)^2 \rrangle$ we can compute the much simpler $1 / \llangle \sigma_l^2 \rrangle$.
+
+For any fixed weight, var
+$$ \langle y^2 \rangle - \langle y \rangle^2 = \mathbf{w}^{\top} \left[ \langle \mathbf{x} \mathbf{x}^{\top} \rangle - \langle \mathbf{x} \rangle \langle \mathbf{x} \rangle^{\top} \right] \
+\mathbf{w} = \mathbf{w}^{\top} \mathbf{C}_{xx} \mathbf{w} $$
+
+Informally, we require "enough" randomness in $x$. Formally.
+
+We can show this assumptions holds in our simulation, we can visualize the distribution of the first 3 elements of $\mathbf{y}$ in the 5th layer of our Batch Normalized net.
 
 <p align="center">
   <img src="/assets/y-distribution.png">
 </p>
+
+Interestingly each element of $\mathbf{y}$ seems to have a different mean, but we can see that fluctuations around the mean appear to have identical distributions. Importantly their variance is all the same.
+
+The fact that every element of $\mathbf{y}$ has a different mean suggests that the assumption that the variance is self-averaging is not trivial. We won't dwell on this point though.
+
+**Step 2:** We'll relate the expected variance of an element of $y$ to the expected variance of an element of $x$. Defing
+
+Note that for any particular setting of weights, we can compute the variance of $y$ if we know the covariance matrix of $\mathbf{x}$
+$$ \langle y^2 \rangle - \langle y \rangle^2 = \mathbf{w}^{\top} \left[ \langle \mathbf{x} \mathbf{x}^{\top} \rangle - \langle \mathbf{x} \rangle \langle \mathbf{x} \rangle^{\top} \right] \mathbf{w} = \mathbf{w}^{\top} \mathbf{C}_{xx} \mathbf{w} $$
+
+This is helpful because, averaged over weight configurations, most terms in the sum $\sum_{ij} C^{xx}_{ij} w_i w_j$ are 0. In particular when $i\neq j$ we have $\llangle w_i w_j \rrangle = 0$ and when $i=j$ we have $\llangle w_i w_j \rrangle = \sqrt{2}/N$. Since we have assumed the $x$ are identically distributed, we are left with the result:
+
+$$ \llangle \langle y^2 \rangle - \langle y \rangle^2 \rrangle = 2 \llangle \langle x^2 \rangle - \langle x \rangle^2 \rrangle $$
+
+The expected variance of an element of $y$ is just twice the expected variance of an element of $x$.
+
+**Step 3:** Finally we'll show that the variance of every $x$ should be .
+
+In particular we will apply a *mean-field* calculation: this means we will assume that, that over the minibatch distribution, elements of $x$ are independent random variables.
+
+The first thing this does for us is that it tells us $\sigma$, the minibatch variance of $y$, is a *self-averaging* quantity: this means we assume that every $y$ has the same minibatch variance. (Actually it follows from the mean-field assumption, but im not sure how to Intuitively justify it without getting bogged down in eigenvalues of random matrix products. So let's just take it as another independent assumption.)
+
+Since $y$ is a sum of $N$ independent random variables, it will have a gaussian distribution, at least if your network is wide enough. And since $z$ is just a centered and scaled version of $y$, it too will be Gaussian, with 0 mean and unit variance.
+
+We now have all that we need to calculate the variance of $x$, which is simply a rectified version of $z$. In particular it is:
+<!-- $$ \langle x^2 \rangle - \langle x \rangle ^2 = \frac{1}{2\pi} \int_{-\infty}^{+\infty} f(z)^2 e^{-z^2/2} dz - \left[\frac{1}{2\pi} \int_{-\infty}^{+\infty} f(z) e^{-z^2/2} \right]^2 dz $$ -->
+
+$$ \langle x^2 \rangle - \langle x \rangle^2 = \int_{-\infty}^{+\infty} f(z)^2 \mathcal{D}z - \left[\int_{-\infty}^{+\infty} f(z) \mathcal{D}z \right]^2 $$
+This notation means that each integral is an expectation over a unit Gaussian distribution.
+
+This is great because we can easily calculate both of these terms. The first term is just $\frac{1}{2}$ (half the variance of a unit Gaussian, which by definition has variance 1). The 2nd term is $\frac{1}{2\pi}$. This follows from directly integration using the fact that $\int z e^{-z^2/2} dz = e^{-z^2/2}$. So the minibatch varaince of $x$ is just going to be $\frac{\pi}{2(\pi-1)}$. Under our mean-field assumption, we have the result that *every* $x$ has the same minibatch variance.
+
+# Blah
+
+Now here's where the fun comes in.
+
+ What is the expected variane
+
+
+ (it has the same value for nearly all configurations of weights) so we only need to compute its average $\llangle \sigma_l^2 \rrangle$ to completely understand its behavior.
+2. Compute $\llangle \sigma_l^2 \rrangle$
+3. Compute variance of x using
+
+
+From our initial simulations we know it has to be about $1.2$ (the factor by which the width of the gradient histograms grew in each layer). But we'll show how to analytically calculate this quantity (with some assumptions).
+
+Let's try to gain some intuition by revisiting the original experiment. Specifically we'll look at the distribution over samples of the first 3 elements of $\mathbf{y}$ in the 5th layer of our Batch Normalized net.
+
+<p align="center">
+  <img src="/assets/y-distribution.png">
+</p>
+
+Interestingly each element of $\mathbf{y}$ seems to have a different mean, but if you subtract this off mean off they all have nearly identical distributions. This suggests a simplification: rather than computing $\llangle (1/\sigma_l)^2 \rrangle$
+
+
+ a mean that depends on which element you choose. However if we subtract off the mean of every $y$ we can see the variance of all the $y_i$'s are nearly identical.
+
+It appears that every element of $\mathbf{z}$ is not just zero mean and unit variance (which is required by Batch Norm) but that all $z_i$ are Gaussian distributed. And since $x_i$ are just rectified versions of $z_i$, they appear to have rectified Gaussian distributions. Interestingly elements of $\mathbf{y}$ seem to have a mean that depends on which element you choose. However if we subtract off the mean of every $y$ we can see the variance of all the $y_i$'s are nearly identical.
+
+We'll look at the minibatch distribution of the first 3 elements of $\mathbf{x},\mathbf{y}$ and $\mathbf{z}$ in the 5th layer of our Batch Normalized network.
+
+<p align="center">
+  <img src="/assets/y-distribution.png">
+</p>
+
+This suggests one simplification for computing $
 
 This suggests a strategy for analytically calculating $\llangle (1/\sigma_l^2) \rrangle$:
 
