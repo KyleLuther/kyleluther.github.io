@@ -139,7 +139,7 @@ The second complication is the division by $\sigma$, the minibatch standard devi
 ##### Approximation 1: $\langle z \frac{dE}{dz} \rangle \approx 0$
 We are going to argue that $\langle z \frac{dE}{dz} \rangle$, the term from backpropagating through $\sigma$, is nearly zero at initialization time.
 
-To do so we'll extend the gradient independence assumption to apply over the minibatch distribution. This means that for a typical configuration of weights, forward pass quantities are independent from backward pass quantities over the minibatch distribution. With this assumption we have
+To do so we'll extend the gradient independence assumption to apply over the minibatch distribution. This means that for a typical configuration of weights, we assume forward pass quantities are independent from backward pass quantities over the minibatch distribution. With this assumption we have
 
 $$\langle \mathbf{z} \circ \frac{dE}{d\mathbf{z}} \rangle \approx \langle \mathbf{z} \rangle \circ \langle \frac{dE}{d\mathbf{z}} \rangle = \mathbf{0}$$
 
@@ -167,11 +167,26 @@ We're in the home stretch. Squaring then averaging the final equation over weigh
 
 $$ \lllangle \left(\frac{dE}{dx_{l-1}}\right)^2 \rrrangle \approx \lllangle \frac{1}{\sigma_l^2} \rrrangle \lllangle \left(\frac{dE}{dx_{l}}\right)^2 \rrrangle$$
 
-All that remains is to compute $\llangle (1/\sigma_l)^2 \rrangle$. We know it has to be about $1.2$ because in our experiments the widths of the histograms grew by this much at each layer.
+All that remains is to compute $\llangle (1/\sigma_l)^2 \rrangle$, the typical inverse of the minibatch variance of an element of $\mathbf{y}$. This is still a little complicated, but at least we know the final answer from our simulations; it be about $1.2$ because in our experiments the widths of the histograms grew by this much at each layer. Let's try to gain some intuition by revisiting the original experiment. We'll look at the distribution of $\mathbf{x},\mathbf{y}$ and $\mathbf{z}$ over samples in the 5th layer of our Batch Normalized network.
 
-In this section we'll actually analytically calculate this quantity. But for some intuition, we'll look at the distribution of $\mathbf{x},\mathbf{y}$ and $\mathbf{z}$ over the minibatch samples in the 5th layer of our Batch Normalized network.
+<p align="center">
+  <img width="400" height="150" src="/assets/distributions.png">
+</p>
 
-Notably, every element of $\mathbf{y}$ seems to have s
+It appears that every element of $\mathbf{z}$ is not just zero mean and unit variance (which is required by Batch Norm) but that all $z_i$ are Gaussian distributed. And since $x_i$ are just rectified versions of $z_i$, they appear to have rectified Gaussian distributions. Interestingly elements of $\mathbf{y}$ seem to have a mean that depends on which element you choose. However if we subtract off the mean of every $y$ we can see the variance of all the $y_i$'s are nearly identical.
+
+<p align="center">
+  <img src="/assets/y-distribution.png">
+</p>
+
+This suggests a strategy for analytically calculating $\llangle (1/\sigma_l^2) \rrangle$:
+
+0. Assume in typical networks $z$ is has a unit Gaussian distribution over minibatch
+1. Compute $\langle x^2 \rangle - \langle x \rangle^2$ using $x=f(z)$
+2. Compute $\llangle \langle y^2 \rangle - \langle y \rangle^2 \rrangle$ using $y=Wx$
+3. Assume the variance of $y$ is self-averaging so $\llangle \langle y^2 \rangle - \langle y \rangle^2 \rrangle = \llangle \frac{1}{\langle y^2 \rangle - \langle y \rangle^2} \rrangle$
+
+Our general strategy will be use the fact that $x=F(z)$ and the unit gaussian distribution of $z$ to compute the variance of $x$.
 
 Our general strategy will be to use the fact that $\mathbf{y}_{l+1} = \mathbf{W}_{l+1} \mathbf{x}_{l}$ to compute the minibatch variance of $y$ given the minibatch variance of $\mathbf{x}_l$. We'll then argue that $z$ is a standard Gaussian and use the relation $x_l = [z_l]^+$ to compute the variance of $x$. In doing so, we will rely on two physics-style approximations.
 
@@ -281,3 +296,5 @@ To derive $dE/dz$ from $dE/dy$,
 
 
 ## Does this matter for Training?
+
+## Implications for the Practitioner
