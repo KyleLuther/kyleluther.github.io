@@ -57,7 +57,7 @@ In this section we'll review the details of Batch Normalization and how it modif
   <img src="/assets/module_forward.png">
 </p>
 
-Each layer in our normalized network contains 3 modules: Matrix Multiply, Batch Norm, and ReLU Nonlinearity. These are shown in the diagram above.
+Each layer in our normalized network contains 3 modules: matrix multiply, Batch Norm, and ReLU. These are shown in the diagram above.
 
 $\mathbf{x}_l, \mathbf{y}_l$ and  $\mathbf{z}_l$ denote the vector outputs of the matrix multiply, Batch Norm, and ReLU modules in layer $l$ for a single input. The [element-wise product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices)) is denoted by $\mathbf{a} \circ \mathbf{b}$. We'll abuse notation and denote element-wise division like this $\mathbf{a}/\mathbf{b}$. The notation $\langle \cdot \rangle$ indicates a *minibatch average* so $\boldsymbol{\mu}_l$ and $\boldsymbol{\sigma}^2_l$ are the mean and variance of each element of $\mathbf{y}_l$ over a minibatch. $f$ is the ReLU nonlinearity which acts element-wise on an input vector.
 
@@ -67,26 +67,23 @@ Because we are only going to examine networks at initializion time, we have made
 <p align="center">
   <img src="/assets/module_backward.png">
 </p>
-The diagram above shows the backwards pass through each module. Recall that the backwards pass tells us how to compute gradients with respect to a module's inputs, given the gradients with respect to the module's outputs.
 
-In each module, the backwards pass can be derived using the chain rule, though in the case of Batch Norm it gets rather tedious. Fortunately the Batch Norm authors give us the result, which I have simplified in the diagram above. If you want more details in actually calculating the backwards pass through a Batch Norm layer, check out this [blog post](http://cthorey.github.io/backpropagation/)!
+The diagram above shows the backwards pass through each module. Recall that the backwards pass applies the chain rule to compute gradients with respect to a module's inputs, given gradients with respect to the module's outputs.
 
-Before moving on, we'll highlight two superficial similarities  between the forwards and backwards pass through a Batch Norm module. One, division by $\boldsymbol{\sigma}_l$ occurs in each case. Two, in the same way Batch Norm centers the forwards pass, $\langle \mathbf{z}_l \rangle = \boldsymbol{0}$, it also centers gradients in the backwards pass $\langle \frac{dE}{d\mathbf{y}} \rangle = \boldsymbol{0}$.
+For the Batch Norm module this gets rather tedious. Fortunately this is derived in the original Batch Norm paper, which I have simplified in the diagram above. If you want a step-by-step derivation, check out this [blog post](http://cthorey.github.io/backpropagation/)!
+
+Before moving on, we'll highlight two superficial similarities  between the forwards and backwards pass through a Batch Norm module. One, division by $\boldsymbol{\sigma}_l$ occurs in each case. Two, in the same way Batch Norm centers the forwards pass, $\langle \mathbf{z}_l \rangle = \boldsymbol{0}$, it also centers gradients in the backwards pass, $\langle \frac{dE}{d\mathbf{y}} \rangle = \boldsymbol{0}$.
 <!--
 $$\langle \frac{dE}{d\mathbf{y}} \rangle = \frac{1}{\sigma} \cancelto{0}{\langle \frac{dE}{d\mathbf{z}} - \langle \frac{dE}{d\mathbf{z}} \rangle \rangle} - \frac{1}{\sigma} \cancelto{0}{\langle \mathbf{z} \rangle} \circ \langle \mathbf{z} \circ \frac{dE}{d\mathbf{z}} \rangle = 0$$ -->
 
 ## *Typical* Gradients in a Batch Normalized Net
-The backwards pass equations through a Batch Norm module are probably not the most enlightening. It's probably unclear how they relate to those histograms we plotted earlier.
-
-Notably they depend on the precise configuration of weights. What we really want to know is *typical* behavior of the backwards pass, over the distribution of networks. Specifically we want:
+The backwards pass equations in the previous section are probably not the most enlightening, especially for the Batch Norm module. What we really want to know is the *typical* behavior of the backwards pass. Specifically we want:
 
 $$ \text{Typical Squared Gradient: } \lllangle \left( \frac{dE}{dx_l}\right)^2 \rrrangle $$
 
-The double brackets $\llangle \cdot \rrangle$ indicate an average over *weights*. Also note that we are really looking at at single element of the vector $\mathbf{x}$.
+The double brackets $\llangle \cdot \rrangle$ indicate an average over *weights*. Also note  that we are really looking at at single element of the vector $\mathbf{x}$. While not exactly the same, this quantity is closely related to the width of the gradient histograms we plotted in previous sections.
 
-Conceptually the only thing we have to do to compute the typical squared gradient is average the backwards pass over weights. This is relatively simply for the matrix multiply and ReLU modules. Batch Norm will take some effort.
-
-In this section and the ReLU section, we are just rederiving the results originally presented the original Kaiming initialization [paper](https://arxiv.org/pdf/1502.01852.pdf). Feel free to skip to the Batch Norm module if you're already familiar with these results. If you want more in depth tutorial on this here is a nice [blog post](https://pouannes.github.io/blog/initialization/).
+To compute the typical squared gradient, in principle we just need to square and average over weights each of the 3 backwards pass equations. For the matrix multiply and ReLU modules, this has been done before, so we'll move quickly to get the final results. If you want a more in depth derivation, check out either the Kaiming initialization [paper](https://arxiv.org/pdf/1502.01852.pdf) or this [blog post](https://pouannes.github.io/blog/initialization/)!
 
 #### Matrix Multiply Module:
 Consider the backwards pass through a matrix multiply module $\frac{dE}{dx_i} = \sum_{j} W_{ji} \frac{dE}{dy_j}$. We have omitted layer indices $l$ and added vector indices $i,j$. Now, on to the "typical backpropagation" equation.
