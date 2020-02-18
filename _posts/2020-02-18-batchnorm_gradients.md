@@ -14,17 +14,20 @@ $$
 $$
 </div>
 
-People who train deep networks know that [Batch Norm](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} makes the training process easier. Most people who train deep networks also know that the presence of *exploding gradients* makes the training process harder. So [recent work](https://openreview.net/pdf?id=SyMDXnCcF7){:target="\_blank"} by Yang et. al might seem quite surprising; they show that our beloved Batch Norm can actually *cause* exploding gradients, at least at initialization time.
+<p align="center">
+  <img src="/assets/bn_gradient_simulation.png" width="500" height="250">
+</p>*Gradient histograms in a 10 layer network at initialization. The typical size of gradients is the same in all layers in a net without Batch Norm (left) and grows exponentially after inserting Batch Norm in every layer (right)*
 
+Most people who train deep networks know that [Batch Norm](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} makes the training process easier. They also know that the presence of *exploding gradients* makes the training process harder. So [recent work](https://openreview.net/pdf?id=SyMDXnCcF7){:target="\_blank"} by Yang et. al might seem quite surprising; they show that our beloved Batch Norm can actually *cause* exploding gradients, at least at initialization time.
 
-Before you go read the paper, I have to warn you: with the appendix, it is 95 pages of technical mathematics filled with Batch Symmetry Breaking Points, Gegenbauer expansions, and Diagonal-Off-Diagonal Semidirect operators. If this interests you, I would recommend giving it a read, as I think they get the details right and say something meaningful about Batch Norm.
+Before read their paper, I have to warn you: with the appendix, it is 95 pages of technical mathematics filled with Batch Symmetry Breaking Points, Gegenbauer expansions, and Diagonal-Off-Diagonal Semidirect operators. If this interests you, I would recommend giving it a read, as I think they get the details right and say something meaningful about Batch Norm.
 
 However, if you're happier with a physics-style "back-of-the envelope" type calculation, stick around. In this post, we'll provide a hopefully more intuitive derivation for the gradient explosion phenomenon. We'll even get the same quantitative result, at least in the large batch regime. (Admittedly we are going to use a big envelope).
 
 **TL;DR** Inserting Batch Norm into a network means that in the forward pass each neuron is divided by its standard deviation, $\sigma$, computed over a minibatch of samples. In the backward pass, gradients get divided by the same $\sigma$. At initialization time, we can actually compute $\sigma$ in wide networks with sufficiently large batch sizes. In ReLU nets, $\sigma\approx \sqrt{(\pi-1)/ \pi} \approx 0.82$.  Since this occurs at every layer, gradient norms in early layers are roughly $(1/0.82)^L$ times larger than gradient norms in layer $L$.
 
 ## What are "exploding gradients"?
-Before our calculation, let's empirically show that "Batch Norm causes exploding gradients". We'll just initialize a net without Batchnorm, compute gradients, then insert Batch Norm into every layer of the net and recompute gradients and see how they differ.
+Before our calculation, let's empirically show that "Batch Norm causes exploding gradients".  We'll just initialize a net without Batchnorm, compute gradients, then insert Batch Norm into every layer of the net and recompute gradients and see how they differ.
 
 Our net without Batch Norm, our "vanilla net", is shown below. Its a boring old 10 layer, feedforward, fully connected network of uniform layer width $N=1024$. We're using the ReLU nonlinearity so we'll initialize weights with [Kaiming initialization](https://arxiv.org/pdf/1502.01852.pdf){:target="\_blank"}. This means we'll set all the biases to zero and sample every element of $W$ from a zero mean Gaussian with variance $\sqrt{2/N}$.
 
@@ -43,7 +46,7 @@ Now we take that exact network, loss, and set of input vectors, but insert Batch
 Again we can compute gradients $dE/d\mathbf{x}_l(t)$ at each layer. Now we'll visualize the gradient histograms in each layer for the vanilla and Batch Norm net. Each histogram is made up of $512\times1024$ scalars (gradients for 512 inputs $\times$ 1024 features):
 
 <p align="center">
-  <img src="/assets/bn_gradient_simulation.png">
+  <img src="/assets/bn_gradient_simulation.png" width="500" height="250">
 </p>
 
 In the vanilla network, the gradient histograms are basically the same in every layer. However, after inserting Batch Norm, the gradients actually grow with decreasing layer. In fact, the widths of these histograms grow *exponentially*. It is in this sense that gradients explode. The rest of this post will be devoted to calculating how the widths of these histograms grow.
