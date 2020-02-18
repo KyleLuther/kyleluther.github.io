@@ -265,5 +265,7 @@ Maybe it doesn't matter. One, the actual factor by which gradients explode, at l
 
 But maybe it does matter. The authors of the "Mean Field Theory of Batch Normalization" [paper](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} show that extremely deep feedforward nets (50+ layers) are hard or impossible to train with Batch Norm. One might object that the deepest real world networks aren't just 50 layers of matrix multiplication or convolution stacked on top of each other, but they include residual connections too. Perhaps this is no coincidence, maybe Batch Norm is not helpful, or is even harmful in extremely deep nets without other tricks.
 
+#### Acknowledgements
+The post originated from work done with my advisor Sebastian Seung.
 
 #### Footnotes
