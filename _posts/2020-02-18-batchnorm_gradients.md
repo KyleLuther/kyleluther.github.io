@@ -228,7 +228,7 @@ We've made it to the end. We can combine our estimate $\llangle 1/\sigma^2\rrang
 
 $$ \boxed{ \lllangle \left(\frac{dE}{dy_{l}}\right)^2 \rrrangle \approx \left(\frac{\pi}{\pi-1}\right) \lllangle \left(\frac{dE}{dz_{l}}\right)^2 \rrrangle } $$
 
-### Result: Gradients Amplified by $\frac{\pi}{\pi-1}$
+### Result: Squared Gradients Amplified by $\frac{\pi}{\pi-1}$
 
 Combining the typical backwards pass equations through every layer, we get the final result that squared gradients are amplified by $\frac{\pi}{\pi-1}$ at every layer:
 
