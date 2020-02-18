@@ -224,9 +224,6 @@ We've made it to the end. We can combine our estimate $\llangle 1/\sigma^2\rrang
 $$ \boxed{ \lllangle \left(\frac{dE}{dy_{l}}\right)^2 \rrrangle \approx \left(\frac{\pi}{\pi-1}\right) \lllangle \left(\frac{dE}{dz_{l}}\right)^2 \rrrangle } $$
 
 ### Result: Gradients Amplified by $\frac{\pi}{\pi-1}$
-<p align="center">
-  <img src="/assets/typical_bn.png">
-</p>
 
 Combining the typical backwards pass equations through every layer, we get the final result that squared gradients are amplified by $\frac{\pi}{\pi-1}$ at every layer:
 
@@ -253,7 +250,7 @@ This probably makes more sense if we just look at the distribution of inputs to 
 
 In deeper layers of the vanilla net, some of the preactivations lie mostly on one side of the nonlinearity. When this happens, the ReLU activation either computes the function $x_i=y_i$ for all inputs or it computes $x_i=0$ for all inputs; either way, it's acting in a linear fashion. This does not happen in the normalized network because inputs to the ReLU are centered by Batch Norm
 
-The authors of the original "Batch Norm causes exploding gradients" [paper](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} would say the network which normalizes preactivations and therefore implements a highly nonlinear function is in a state of *transient chaos*.
+The authors of the original "Mean Field Theory of Batch Normalization" [paper](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} would say the network which normalizes preactivations and therefore implements a highly nonlinear function is in a state of *transient chaos*.
 
 
 ## Does this matter for Real World Network Training?
@@ -261,7 +258,7 @@ I'm really not sure.
 
 Maybe it doesn't matter. One, the actual factor by which gradients explode, at least in our scenario, is not too extreme. They grow by 1.21 at each layer, even after 10 layers this means gradients are just 6x larger in the beginning. This is probably not a crippling difference. And this might be small compared to differences coming from variable layer widths, residual connections, and other complications in real world networks. Two, all this analysis was in random networks. Relating this to training dynamics is not a simple matter.
 
-But maybe it does matter. The authors of the original Batch Norm causes exploding gradients paper show that extremely deep feedforward nets (50+ layers) are hard or impossible to train with Batch Norm. One might object that the deepest real world networks aren't just 50 layers of matrix multiplication or convolution stacked on top of each other, but they include residual connections too. Perhaps this is no coincidence, maybe Batch Norm is not a helpful, or is even harmful in extremely deep nets without other tricks.
+But maybe it does matter. The authors of the "Mean Field Theory of Batch Normalization" [paper](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} show that extremely deep feedforward nets (50+ layers) are hard or impossible to train with Batch Norm. One might object that the deepest real world networks aren't just 50 layers of matrix multiplication or convolution stacked on top of each other, but they include residual connections too. Perhaps this is no coincidence, maybe Batch Norm is not a helpful, or is even harmful in extremely deep nets without other tricks.
 
 
 #### Footnotes
