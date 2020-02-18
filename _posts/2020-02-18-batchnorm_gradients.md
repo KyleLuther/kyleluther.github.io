@@ -1,7 +1,8 @@
 ---
 layout: post
-title:  "Batch Norm Causes Exploding Gradients"
-date:   2020-01-23 23:01:52 -0500
+title: "Batch Norm Causes Exploding Gradients"
+date: 2020-02-18 10:00:00
+keywords: Batch Normalization, exploding gradients
 ---
 
 <div style="display:none">
@@ -13,11 +14,12 @@ $$
 $$
 </div>
 
-Practitioners know that [Batch Norm](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} usually makes it easier to train deep networks and theorists know that the presence of *exploding gradients* usually makes it harder to train deep networks. So [recent work](https://openreview.net/pdf?id=SyMDXnCcF7){:target="\_blank"} by Yang et. al might seem quite surprising; they show that our beloved Batch Norm can actually *cause* exploding gradients, at least at initialization time.
+People who train deep networks know that [Batch Norm](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} makes the training process easier. Most people who train deep networks also know that the presence of *exploding gradients* makes the training process harder. So [recent work](https://openreview.net/pdf?id=SyMDXnCcF7){:target="\_blank"} by Yang et. al might seem quite surprising; they show that our beloved Batch Norm can actually *cause* exploding gradients, at least at initialization time.
+
 
 Before you go read the paper, I have to warn you: with the appendix, it is 95 pages of technical mathematics filled with Batch Symmetry Breaking Points, Gegenbauer expansions, and Diagonal-Off-Diagonal Semidirect operators. If this interests you, I would recommend giving it a read, as I think they get the details right and say something meaningful about Batch Norm.
 
-However, if you'd be happy with a physics-style "back-of-the envelope" type calculation, stick around. In this post, we'll provide a hopefully more intuitive derivation for the gradient explosion phenomenon. We'll even get the same quantitative result, at least in the large batch regime. (Admittedly we are going to use a big envelope).
+However, if you're happier with a physics-style "back-of-the envelope" type calculation, stick around. In this post, we'll provide a hopefully more intuitive derivation for the gradient explosion phenomenon. We'll even get the same quantitative result, at least in the large batch regime. (Admittedly we are going to use a big envelope).
 
 **TL;DR** Inserting Batch Norm into a network means that in the forward pass each neuron is divided by its standard deviation, $\sigma$, computed over a minibatch of samples. In the backward pass, gradients get divided by the same $\sigma$. At initialization time, we can actually compute $\sigma$ in wide networks with sufficiently large batch sizes. In ReLU nets, $\sigma\approx \sqrt{(\pi-1)/ \pi} \approx 0.82$.  Since this occurs at every layer, gradient norms in early layers are roughly $(1/0.82)^L$ times larger than gradient norms in layer $L$.
 
