@@ -25,9 +25,6 @@ $$
 Deep learning practitioners know that using [Batch Norm](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} generally makes it easier to train deep networks. They also know that the presence of *exploding gradients* generally makes it harder to train deep networks. So [recent work](https://openreview.net/pdf?id=SyMDXnCcF7){:target="\_blank"} by Yang et. al might seem quite surprising; they show that our beloved Batch Norm can actually *cause* exploding gradients, at least at initialization time.
 
 I like their paper because it has the rare quality of saying something both rigorous and meaningful about Batch Norm. Unfortunately, there's not much intuition behind the 95 pages of technical mathematics comprising the paper. In this post I'll provide a more intuitive explanation for the gradient explosion phenomenon. With a few physics-style "back-of-the-envelope" calculations (and admittedly a big envelope), we'll show that gradients norms grow by $\sqrt{\pi/(\pi-1)}$ in each layer of a wide ReLU network with Batch Normalization (assuming large batches)
-<!--
-
-However, if you're happier with a physics-style "back-of-the envelope" type calculation, stick around. In this post, we'll provide a hopefully more intuitive derivation for the gradient explosion phenomenon. We'll even get the same quantitative result, at least in the large batch regime. (Admittedly we are going to use a big envelope). -->
 
 **TL;DR** Inserting Batch Norm into a network means that in the forward pass each neuron is divided by its standard deviation, $\sigma$, computed over a minibatch of samples. In the backward pass, gradients are divided by the same $\sigma$. In ReLU nets, we'll show that this standard deviation is less than 1, in fact we can approximate $\sigma\approx \sqrt{(\pi-1)/ \pi} \approx 0.82$. Since this occurs at every layer, gradient norms in early layers are amplified by roughly $1.21 \approx (1/0.82)$ in every layer.
 
