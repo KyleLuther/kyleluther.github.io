@@ -263,7 +263,7 @@ I'm really not sure.
 
 Maybe it doesn't matter. One, the actual factor by which gradients explode, at least in our scenario, is not too extreme. They grow by 1.21 at each layer, even after 10 layers this means gradients are just 6x larger in the beginning. This is probably not a crippling difference. And this might be small compared to differences coming from variable layer widths, residual connections, and other complications in real world networks. Two, all this analysis was in random networks. Relating this to training dynamics is not a simple matter.
 
-But maybe it does matter. The authors of the "Mean Field Theory of Batch Normalization" [paper](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} show that extremely deep feedforward nets (50+ layers) are hard or impossible to train with Batch Norm. One might object that the deepest real world networks aren't just 50 layers of matrix multiplication or convolution stacked on top of each other, but they include residual connections too. Perhaps this is no coincidence, maybe Batch Norm is not a helpful, or is even harmful in extremely deep nets without other tricks.
+But maybe it does matter. The authors of the "Mean Field Theory of Batch Normalization" [paper](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} show that extremely deep feedforward nets (50+ layers) are hard or impossible to train with Batch Norm. One might object that the deepest real world networks aren't just 50 layers of matrix multiplication or convolution stacked on top of each other, but they include residual connections too. Perhaps this is no coincidence, maybe Batch Norm is not helpful, or is even harmful in extremely deep nets without other tricks.
 
 
 #### Footnotes
