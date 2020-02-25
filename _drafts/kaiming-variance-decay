@@ -1,0 +1,134 @@
+---
+layout: post
+title: "Kaiming initialization doesn't preserve neuron variance, if you compute the variance over inputs rather than weights"
+date: 2020-02-18 10:00:00
+keywords: Kaiming initialization, preserve variance
+---
+
+$$
+  \def\llangle{\langle \! \langle}
+  \def\rrangle{\rangle \! \rangle}
+  \def\lllangle{\left \langle \!\! \left \langle}
+  \def\rrrangle{\right \rangle \!\! \right \rangle}
+$$
+
+<p align="center">
+  <img src="/assets/samplelayer_randomness.png">
+</p>
+
+*Initialize your network to preserve the mean and variance of neurons across layers.* This prescription is pervasive in the deep learning community and its easy to see why. Not only is it effective, but it is simple to implement, and simple to understand.
+
+For ReLU nets, we implement this prescription by drawing weights from a zero mean distribution with variance $2/N$. This is the popular Kaiming initialization. Normalization schemes like Batch/Layer/Group/etc. Norm make this even easier to implement; by design they normalize neurons so they are zero mean and unit variance at init time.
+
+But there is a subtlely here, over what distribution are the mean and variance computed? Kaiming preserves the variance over *weights*. Batch Norm normalizes neurons using *minibatch* statistics. Layer Norm uses the mean and variance over a *layer*. 
+
+In this post, we'll show that neuron distributions are very different when computed over the sample distribution vs. over weights. With mild assumptions on the input distribution, Kaiming initialization in ReLU nets preserves the variance of neurons over weights but causes the variance over samples to decay to zero with depth! [^1]
+
+[1]: We wrote a paper describing this phenomenon. This post is hopefully a simpler derivation of the same phenomenon.
+
+
+## Network vs. Layer vs. Sample Randomness
+Things will probably be more clear with an experiment. We will examine various preactivation distributions in a simple network when the inputs are Gaussian white noise. The network is a 50 layer fully connected ReLU network initialized with Kaiming initialization (biases are set to zero and weights are drawn from a zero mean Gaussian with variance $2/N$). This is about the simplest network possible: matrix multiply, ReLU, matrix multiply, ReLU, etc...
+
+#### Network Randomness
+We'll visualize the distribution of a preactivation due to randomness in network configurations. To do so we will randomly sample a single input $\mathbf{x}_0$ and 1024 different networks. We'll compute the empirical distribution over networks of 3 neurons in layers 1,5,10,50. In general each of these distributions depends (weakly) on the input.
+
+<p align="center">
+  <img src="/assets/network_randomness.png">
+</p>
+
+Ok, this is boring. Just a bunch of uniform Gaussians at each layer. It's good that this is boring; Kaiming initialization is supposed to preserve the variance of each of these distributions. But you can maybe see what is wierd here. Doesn't it seem more natural to fix a network and examine the distribution over inputs?
+
+#### Layer Randomness
+There is actually another source of randomness, which is probably more closely related to what one empirically measures in practice. We'll fix a single network and a single sample. But this time we visualize the distribution of all preactivations in a layer.
+
+<p align="center">
+  <img src="/assets/layer_randomness.png">
+</p>
+
+This looks similar to the network randomness case. This makes sense, it closely related, as in this case we are essentially juts examining fluctuations in preactivations due to randomness in a single layer of weights.
+
+#### Sample Randomness
+Here we'll generate a single network, and this time generate 1024 different input samples. We'll compute the empirical distribution over samples of 3 neurons in layers 1,5,10,50. In general each of these distributions depends on the network.
+
+<p align="center">
+  <img src="/assets/sample_randomness.png">
+</p>
+
+Completely different. Interestingly it appears that as we look deeper and deeper in the network, the distribution of each preactivation collapses to small fluctuations around some large mean value. The network appears to be implementing a nearly constant function. The location of these mean values depend on the network weights.
+
+#### Mean-variance decomposition
+
+Motivated by these experiments we will decompose the value of each neuron into the sum of two terms: its mean over samples + fluctuations around the mean
+$$ y_t = \mu + \nu_t $$
+
+Importantly, $\mu$ is NOT a function of the input sample (its a function of the input distribution, but not any sample). $\nu$ is a function both of the input $t$ and the weight configuration.
+
+Our goal will be to calculate the sample variance of y in
+
+## Kaiming init preserves variance over networks
+
+For any fixed input $\mathbf{x}_0$, we want to show that Kaiming initialization preserves the network variance of preactivations. In other words we are goi
+$$ \text{Network Variance: } \llangle y^2 \rrangle $$
+is the same in every layer
+
+Assume some $P(y)$. Of course this $P$ is some crazy complicated distribution but for ReLU networks we'll only need to consider its 2nd moment.
+
+Importantly every preactivation in a layer has the same distribution, if you randomize over weights.
+
+**Step 1:**
+
+$$ y^2 = \sum_{ij} w_i w_j f(y_i) f(y_j) $$
+
+**Step 2:**
+
+$$ \llangle y^2 \rrangle = 2 \llangle f(y)^2 \rrangle $$
+
+**Step 3:**
+
+$$ \llangle f(y)^2 \rrangle = \frac{1}{2} = \llangle f(y)^2 \rrangle $$
+
+**Result:**
+$$ \llangle y^2 \rrangle =  \llangle y^2 \rrangle $$
+
+Basically it's much easier to deal with randomness in weights than randomness in inputs. Let's see how this works here. We'll fix an input $\mathbf{x}_0$, and we'll compute
+
+For ReLU, we didnt evern need to make any assumptions about the input, nor the network width. This calcualte is exact.
+
+## Kaiming init shrinks variance over samples with depth
+In the previous section, we showed that over weights. But in our experiments we showed that there is something a little funky. Notably there each preactivation has a mean value which depends on the weights.
+
+Motivated by our experiment, let's decompose the value of each preactivation into two sources of randomness.
+
+$$ y_t = \mu + \nu_t $$
+
+Now we can explain the subtley from the previous section. When randomizing over weights, the variance of $y$ has two contributions, one fomr the location of its sample mean and the other from fluctuations around the mean. empirically we have seen that most of the randomess in $y$ is actually coming from the sample mean. In this secetion, we will theoretically calculate this behavior.
+
+
+**Step 1:**
+
+$$ \langle y \rangle^2 = \sum_{ij} w_i w_j \langle f(y_i) \rangle  \langle f(y_j) \rangle $$
+
+**Step 2:**
+
+$$ \llangle \langle y \rangle^2 \rrangle = 2 \int \left[\int f(\mu+\nu) P(\nu| \mu) d\nu \right]^2 P(\mu) d \mu$$
+
+**Step 3:**
+
+Intuitively, $y$ is the sum of $N$ random variables: so $\mu = w_i <fx$. Of course these $x$ are not iid in physics terms we make a mean field approximation (basically there is enough randomess in the $x$ to apply central limit theorem and get gaussian $\mu$).
+
+Our second assumption, $\nu$ is has a gaussian distribution over samples with a variance that only depends on the layer (not weights). Basically we assume that every neuron has the same variance over samples.
+$$ \nu \sim \mathcal{N}(0, v^2) $$
+
+$$ \mu \sim \mathcal{N}(0, m^2) $$
+
+**Step 4:**
+$$ \int \left[\int f(\mu+\nu) P(\nu| \mu) d\nu \right]^2 P(\mu) d \mu = K(m,v)$$
+
+
+## Discussion
+#### More intuitively why does this happen
+#### Less intuitively why does this happen
+#### Batch Normalization and Layer Normalization
+#### Nearly Linear Networks and Edge of Chaos
+#### Implications for Training
