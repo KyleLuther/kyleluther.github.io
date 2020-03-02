@@ -91,6 +91,10 @@ Kaiming initialization preserves the variance of $y$ over randomenss in $w$. But
 
 In the rest of this post, we'll try to instead calculate fluctuations in $y$ due only to fluctuations in the input $t$.
 
+Total variance:
+
+$$ \langle y^2 \rangle = \langle y^2 \rangle - \langle y \rangle^2  +   $$
+
 ## Kaiming init preserves variance over networks
 In this section we'll show that Kaiming initialization preserves the variance of units if you randomize over weights. This is just a review of the argument given in the original Kaiminig initialization paper.
 
@@ -119,17 +123,69 @@ The variance over networks of a preactivation in layer $l$ is the same as it is 
 Some general things to note, averaging over weights greatly simplifies this calculation. We didnt make any assumptions about the input, nor the network width. This calculation is exact.
 
 ## Kaiming init shrinks variance over samples
-In some sense we are going to do the opposite of what we did in the previous section. Here, we want to freeze the network weights and compute the variance over samples of a preactivation in each layer:
-$$ \langle y_l^2 \rangle - \langle y_l \rangle^2 $$
+We want to freeze the network weights and compute the variance over samples of a preactivation in each layer:
+$$ \langle y^2 \rangle - \langle y \rangle^2 $$
+where single brackets $\langle \cdot \rangle$ indicate an average over samples. Unfortunately, averaging over inputs with fixed weights is much more challenging than avering over weights with fixed inputs.
+
+We will first examine the simpler quantity:
+$$ \llangle \langle y^2 \rangle - \langle y \rangle^2 \rrangle $$
+This is the sample variance over network configurations.
+
+Let's look at the second term $\llangle \langle y \rangle^2 \rrangle$. Using the formula
+$\mathbf{y}_l = \mathbf{W}_{l} f(\mathbf{y}_{l-1})$. Because fact elements of $\mathbf{W}$ and $\mathbf{y}_{l-1}$ have identical and independent distributions over weights, we can write the variance of an element of $\mathbf{y}_l$ as:
+
+$$ \llangle \langle y_l \rangle^2 \rrangle = 2 \llangle \langle f(y_{l-1}) \rangle^2 \rrangle $$
+
+Let's suppose we know the sample mean of the preactivation $y_{l-1}$. Then computing $\langle f(y_{l-1}) \rangle$ is in principle:
+
+$$ \langle f(y) \rangle = \int f(\mu+\nu) P(\nu|\mu) d\nu $$
+and we can average this over weights to get:
+$$ \llangle \langle f(y) \rangle^2 \rrangle = \int \left[\int f(\mu+\nu) P(\nu|\mu) d\nu \right]^2 P(\mu) d\mu $$
+
+$$ \llangle \langle f(y)^2 \rangle \rrangle = \int \int f(\mu+\nu)^2 P(\nu|\mu) P(\mu) d\nu d\mu = \int f(y)^2 P(y) dy$$
+
+Naively we can write this:
+$$ P(y) = P(\nu | \mu) P(\mu) $$
+$$ \llangle \langle f(y) \rangle^2 \rrangle = $$
+
+
+
+## Kaiming init shrinks variance over samples
+We want to do the opposite of what we did in the previous section. Here, we want to freeze the network weights and compute the variance over samples of a preactivation in each layer:
+$$ \langle y^2 \rangle - \langle y \rangle^2 $$
 where single brackets $\langle \cdot \rangle$ indicate an average over samples.
 
-Unfortunately, averaging over inputs with fixed weights is much more challenging than avering over weights with fixed inputs. We will need to make
+Unfortunately, averaging over inputs with fixed weights is much more challenging than avering over weights with fixed inputs. We will make one key approximation that will let us calculate this quantity
 
 #### Intuition
 
 #### Calculation
+In terms. Basically we will assume we have a large layer width and we will treat each of the neurons as independent over samples.
 
-**Step 1:**
+**Approximation 1:** Self-averaging Variance
+**Approximation 2:** Gaussian fluctuations
+
+**Mean Field Approximation:** We will approximate our networks as wide and assume each preactivation is an independent random variable over the sample distribution
+
+**Step 1:** First we'll show that with our mean-field assumption, the sample variance of $y$ is *self-averaging*. This means that for nearly all networks in our ensemble, the sample variance of $y$ is roughly same as the average:
+$$ \langle y_l^2 \rangle - \langle y_l \rangle^2 \approx \llangle \langle y_l^2 \rangle - \langle y_l \rangle^2 \rrangle $$
+
+This will greatly simplify our calculation as we will now be able to average over configurations of weights.
+
+To show this theoretically, let's use our formula $y_i = \sum_j W_{ij} x_j$:
+$$ \langle y_l^2 \rangle - \langle y_l \rangle^2 = \mathbf{w}^T C \mathbf{w} $$
+
+To show that $\langle y_l^2 \rangle - \langle y_l \rangle^2$ is self-averaging, we want to show that  the variance over weights of the sample variance is small:  
+
+$$ \llangle (v^2)^2 \rrangle - \llangle v^2 \rrangle^2 \approx 0 $$
+
+Yikes. But let's use our formula $y_i = \sum_j W_{ij} x_j$ to write $\langle y_l^2 \rangle - \langle y_l \rangle^2 = \mathbf{w}^T C \mathbf{w}$
+
+$$ \llangle v^2 \rrangle^2 = \left[\frac{1}{N} \sum_i \lambda_i \right]^2 \qquad \llangle v^4 \rrangle = \frac{1}{N} \sum_i \lambda_i^2 $$
+
+where $\lambda_i$ are the eigenvalues of the correlation matrix
+
+ neither $\langle y^2 \rangle$ nor $\langle y^2 \rangle$ are self-averaging quantities
 $$ \langle y_l^2 \rangle - \langle y_l \rangle^2 \approx \llangle \langle y_l^2 \rangle - \langle y_l \rangle^2 \rrangle $$
 
 **Step 2:**
@@ -138,8 +194,19 @@ $$ \text{sample randomness: } \; \nu \sim \mathcal{N}(0, v^2) $$
 $$ \text{network randomness: } \; \mu \sim \mathcal{N}(0, m^2) $$
 
 **Step 3:**
+Now we are ready to procede to the main calculation. Rather than computing $\llangle y^2 \rrangle$ as we did, we will compute $\llangle \langle y \rangle^2 \rrangle$
 
-$$ \llangle \langle y \rangle^2 \rrangle = 2 \int \left[\int f(\mu+\nu) P(\nu) d\nu \right]^2 P(\mu) d \mu $$
+The calculation procedes as it did for the network variance. Recall the forward pass of our fully connected net: $\mathbf{y}_l = \mathbf{W}_{l} f(\mathbf{y}_{l-1})$. Because fact elements of $\mathbf{W}$ and $\mathbf{y}_{l-1}$ have identical and independent distributions over weights, we can write the variance of an element of $\mathbf{y}_l$ as:
+
+$$ \llangle \langle y_l \rangle^2 \rrangle = 2 \llangle \langle f(y_{l-1}) \rangle^2 \rrangle $$
+
+Assuming we know $\langle y_{l-1}\rangle$, it is simple enough to calculate:
+
+$$ \langle f(y_{l-1}) \rangle = \int f(\mu+\nu) P(\nu) d\nu $$
+
+And we can average this over weights:
+
+$$ \llangle \langle f(y_{l-1}) \rangle^2 \rrangle = \int \left[\int f(\mu+\nu) P(\nu) d\nu \right]^2 P(\mu) d \mu $$
 
 **Step 4:**
 $$ \int \left[\int f(\mu+\nu) P(\nu| \mu) d\nu \right]^2 P(\mu) d \mu = K(m,v)$$
