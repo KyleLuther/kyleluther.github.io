@@ -28,7 +28,8 @@ In this post, we'll show that neuron distributions are very different when compu
 
 
 ## Network vs. Sample vs. Layer Randomness
-Let's start off with an experiment. We will examine neuron distributions in an ensemble of 50 layer fully connected ReLU networks of uniform width $N=1024$. We'll set their parameters using Kaiming initialization, so biases are zero and weights are drawn iid from a zero mean Gaussian with variance $2/N$. To keep things as simple as possible we'll assume inputs are Gaussian white noise.
+To qualitatively show that neuron distributions can be quite different depending on if you average over weights or samples,
+let's start off with an experiment. We will examine neuron distributions in an ensemble of 50 layer fully connected ReLU networks of uniform width $N=1024$. We'll randomly set hte nets' parameters using Kaiming initialization, so biases are zero and weights are drawn iid from a zero mean Gaussian with variance $2/N$. To keep things as simple as possible we'll assume inputs are Gaussian white noise.
 
 <p align="center">
   <img src="/assets/kaiming-net.png">
@@ -37,7 +38,6 @@ Let's start off with an experiment. We will examine neuron distributions in an e
 In this setup, we can identify two fundamental sources of randomness, one from the weights and the other from the inputs:
 $$ \mathbf{W}_1, \mathbf{W}_2, ..., \mathbf{W}_l \stackrel{iid}\sim \mathcal{N}(0, 2/N) \qquad \mathbf{x}_0 \sim Q(\mathbf{x}_0)$$
 
-The point of this post is that preactivations will have qualitatively different distributions depending on which variables we fix and which we randomize over. In this section we'll show this emperically, and in later sections we'll show it analytically.
 
 #### Network Randomness
 We will call randomness due to fluctuations in every layer's weights *network randomness*. In this section we will visualize a preactivation's distribution due to network randomness. Mathematically, this means we wish to visualize:
@@ -55,18 +55,18 @@ This is where things get interesting. Here we will freeze weights in all layers 
 $$ P(y_l | \mathbf{W}_1, \mathbf{W}_2, ..., \mathbf{W}_{l} ) \qquad \mathbf{x}_0 \sim Q(\mathbf{x}_0) $$
 
 
-To do so, we generate a single network, and this time generate 1000 different input samples. We'll compute the empirical distribution over samples of 3 neurons in layers 1,5,10,50. In general each of these distributions depends on the network.
+To do so, we generate a single network, and this time generate 1000 different input samples. We'll compute the empirical distribution over samples of 3 neurons in layers 1,5,10,50. In general each of these distributions depends on the precise configuration of weights in the network.
 
 <p align="center">
   <img src="/assets/sample_randomness.png">
 </p>
 
-Completely different! Interestingly it appears that as we look deeper and deeper in the network, the distribution of each preactivation collapses to small fluctuations around some large mean value. The network appears to be implementing a nearly constant function. The location of these mean values depend on the network weights.
+Completely different from the network randomness setting! Interestingly it appears that as we look deeper and deeper in the network, the distribution of each preactivation collapses to small fluctuations around some large mean value. The network appears to be implementing a nearly constant function. The location of these mean values depend on the network weights.
 
 #### Layer Randomness
-In practice, one is not very likely to initialize 1000 different networks and compute preactivation distributions. Instead one is much more likely to initialize a single network and compute the distribution of all preactivations in a layer for a single sample.
+Before analytically calculating the behavior above, we'll examine one final distribution. In practice, one is not very likely to initialize 1000 different networks and compute preactivation distributions. Instead one is much more likely to initialize a single network and compute the distribution of all preactivations in a layer for a single sample.
 
-This is equivalent to visualizing a single preactivation's distribution due to *layer randomness*, randomness in a single layer's weights. I.e. you fix the weights in layers $1,2,...,l-1$ and then visualize the distribution of a single preactivation $y_{l,i}$ over random choices in its weight vector $\mathbf{w}_{l,i}$.
+This is equivalent to visualizing a single preactivation's distribution due to *layer randomness*, randomness in a single layer's weights. To visualize this, we'll fix the weights in layers $1,2,...,l-1$ and then visualize the distribution of a single preactivation $y_{l,i}$ over random choices in its weight vector $\mathbf{w}_{l,i}$.
 
 $$ P(y_l | \mathbf{x}_0, \mathbf{W}_1, \mathbf{W}_2, ..., \mathbf{W}_{l-1} ) \qquad \mathbf{W}_l \sim \mathcal{N}(0, 2/N) $$
 
@@ -76,24 +76,18 @@ In our experiment here are the results for a single network and input.
   <img src="/assets/layer_randomness.png">
 </p>
 
-Again, pretty boring. So long as the network is sufficiently *wide*, these distributions will be close to the distributions in the previous section that we got by allowing weight in every layer to fluctuate.
-
-We won't discuss layer randomness again, but its worth mentioning.
+These look similar to the distributions due to network randomness. So long as the network is sufficiently *wide*, these distributions will be close to the distributions in the previous section that we got by allowing weight in every layer to fluctuate.
 
 #### Mean-fluctuation decomposition
-So it seems like Kaiming initialization exhibits some non-trivial behavior that can be seen when looking at preactivations in fixed networks. Motivated by these experiments we will decompose the value of each preactivation into the sum of two terms: its mean $\mu$ over samples and fluctuations $\nu$ around the mean $\nu$:
+It seems like Kaiming initialization actually exhibits some pretty non-trivial behavior. To describe this behavior more precisely we will decompose the value of a preactivation into the sum of two terms: its mean $\mu$ over samples and fluctuations $\nu$ around the mean:
 
 $$ y(w,t) = \mu(w) + \nu(w,t) $$
 
-Importantly the mean $\mu$ is a function only of the network weights, which we have written as $w$. The fluctuations. The variance of $y$
+Importantly both the mean $\mu$ and fluctuation $\nu$ depend on the weights $w$. However only the fluctuation depends on the sample $t$.
 
-Kaiming initialization preserves the variance of $y$ over randomenss in $w$. But the variance of $y$ has two contributions if you average over weights, fluctuations in $\mu$ and fluctuations in $\nu$. In higher layers it appears that nearly all the fluctuations in $y$ are coming from fluctuations in $\mu$.
+Kaiming initialization ensures that the variance of $y$ is the same in all layers, if you average over weights. Our experiments have shown that in higher layers, most of these fluctuations are just coming from fluctuations in the location of the mean.
 
-In the rest of this post, we'll try to instead calculate fluctuations in $y$ due only to fluctuations in the input $t$.
-
-Total variance:
-
-$$ \langle y^2 \rangle = \langle y^2 \rangle - \langle y \rangle^2  +   $$
+In the next two sections, we'll try to analytically compute the variance of $y$ over the weight configuration and the sample configuration.
 
 ## Kaiming init preserves variance over networks
 In this section we'll show that Kaiming initialization preserves the variance of units if you randomize over weights. This is just a review of the argument given in the original Kaiminig initialization paper.
@@ -108,8 +102,7 @@ where double brackets $\llangle \cdot \rrangle$ indicate an average over weights
 
 Two things to note. One, $y$ is zero mean over weights, $\llangle y \rrangle=0$, because elements of $W$ are zero mean. Two, every $y$ in the same layer has the same distribution, if you randomize over weights, because elements of $W$ are identically distributed.
 
-
-Recall the forward pass of our fully connected net: $\mathbf{y}_l = \mathbf{W}_{l} f(\mathbf{y}_{l-1})$. Because fact elements of $\mathbf{W}$ and $\mathbf{y}_{l-1}$ have identical and independent distributions over weights, we can write the variance of an element of $\mathbf{y}_l$ as:
+Recall the forward pass of our fully connected net: $\mathbf{y}_l = \mathbf{W}_{l} f(\mathbf{y}_{l-1})$. Because elements of $\mathbf{W}$ and $\mathbf{y}_{l-1}$ have identical and independent distributions over weights, we can write the variance of an element of $\mathbf{y}_l$ as:
 
 $$ \llangle y_l^2 \rrangle = N \; \llangle W_l^2 \rrangle \llangle f(y_{l-1})^2 \rrangle = 2 \llangle f(y_{l-1})^2 \rrangle$$
 
@@ -121,6 +114,11 @@ $$ \llangle y_l^2 \rrangle =  \llangle y_{l-1}^2 \rrangle $$
 The variance over networks of a preactivation in layer $l$ is the same as it is in layer $l-1$. Variance is preserved.
 
 Some general things to note, averaging over weights greatly simplifies this calculation. We didnt make any assumptions about the input, nor the network width. This calculation is exact.
+
+## Kaiming init shrinks variance over samples
+Assuming we know the distribution of the sample mean and variance in layer $l-1$, we can compute this distribution in the next layer.
+
+
 
 ## Kaiming init shrinks variance over samples
 We want to freeze the network weights and compute the variance over samples of a preactivation in each layer:
