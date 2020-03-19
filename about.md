@@ -9,7 +9,7 @@ permalink: /about/
 
 Hi! I'm a fourth year physics PhD student at Princeton advised by [Sebastian Seung](https://twitter.com/sebastianseung?lang=en){:target="\_blank"}. My research interests lie at the intersection of deep learning, computer vision, and computational neuroscience.
 
-I came to Princeton with no clear vision of what I wanted to do. I like math, physics, and computers, and had done some astrophysics research in undergrad which had all those good things so I figured I'd stick with astro and see where things went.
+I came to Princeton with no clear vision of what I wanted to do but i knew I liked math, physics, computers, etc. As an undergrad, I had done some astrophysics research which had all those good things, so I figured I'd stick with astro and see where things went.
 
 In my first semester of grad school, I watched the online CS231n deep learning lectures given by Andrej Karpathy at Stanford. I was blown away. I immediately dropped my "true physics" research and switched to deep learning. Fortunately, I was able to join a really great lab.
 
