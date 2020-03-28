@@ -163,68 +163,36 @@ The variance over networks of a preactivation in layer $l$ is the same as it is 
 
 ## Preactivation Statistics arising from sample randomness
 
-It will be too hard. Plus they depend on network weights.
-We want
-
-$$ \llangle \langle y \rangle^2 \rrangle $$
-
-$$ \llangle \langle y^2 \rangle - \langle y \rangle^2 \rrangle $$
+None of previous observations seem to be true. When you fix the weights, each preactivation has a different distribution over inputs, in general they are not zero mean, and the variance seems to decrease in each layer.
 
 #### Mean-Fluctuation Decomposition
+We can qualitatively describe the phenomenon. Unfortunately rigorous treatment will not be possible.
+
 Our first step will be to decompose every preactivation into the sum of two terms, its mean $\mu$ over samples and fluctuations $\nu$ around the mean:
 
 $$ y(w,t) = \mu(w) + \nu(w,t) $$
 
 Note that the $\mu$ only depends on the network weights, which we indicate by $\mu(w)$, and $\nu$ depends both on the input and weights, which we indicate by $\nu(w,t)$. Now we will make two approximations.
 
-**Approximation 1:** we will assume that every preactivation in a layer exhibits gaussian fluctuations with the same variance:
-$$ \text{sample randomness: } \; \nu_l \sim \mathcal{N}(0, v_l^2) $$
-Of course, later we'll argue that so long as there is enough randomness in the inputs and the network is sufficiently wide, this is a decent approximation.
+#### Approximate Calculation (Wide net + random inputs)
 
-**Approximation 2:** we will assume that the distribution of means is gaussian in each layer
-$$ \text{network randomness: } \; \mu_l \sim \mathcal{N}(0, m_l^2) $$
-<!--
-$$ \llangle \langle y_l \rangle^2 \rrangle = 2 \llangle \langle f(y_{l-1}) \rangle^2 \rrangle $$ -->
+If we are willing to make some assumptions, we will actually be able to calculate the precise amount by which the variance of each preactivation shrinks with layer.
 
-Let's suppose we know $m^2_l$ (the network variance of the sample mean) and $v^2_l$ (sample variance of a preactivation) in layer $l$. We can normalize our inputs so that $m^2=0$ and $v^2=1$ in the first layer.
+Our key insight will be that the variance of each neuron is the same.
 
-We can then calculate $m^2_{l+1}$ and $v^2_{l+1}$ in the next layer.
-
-Let's suppose we know the sample mean of the preactivation $y_{l-1}$. Then computing $\langle f(y_{l-1}) \rangle$ is in principle:
-
-$$ \langle f(y) \rangle = \int f(\mu+\nu) P(\nu|\mu) d\nu $$
-and we can average this over weights to get:
-$$ \llangle \langle f(y) \rangle^2 \rrangle = \int \left[\int f(\mu+\nu) P(\nu|\mu) d\nu \right]^2 P(\mu) d\mu $$
-
-$$ \llangle \langle f(y)^2 \rangle \rrangle = \int \int f(\mu+\nu)^2 P(\nu|\mu) P(\mu) d\nu d\mu = \int f(y)^2 P(y) dy$$
-
-Naively we can write this:
-$$ P(y) = P(\nu | \mu) P(\mu) $$
-$$ \llangle \langle f(y) \rangle^2 \rrangle = $$
-
-
-
-## Kaiming init shrinks variance over samples
-We want to do the opposite of what we did in the previous section. Here, we want to freeze the network weights and compute the variance over samples of a preactivation in each layer:
 $$ \langle y^2 \rangle - \langle y \rangle^2 $$
-where single brackets $\langle \cdot \rangle$ indicate an average over samples.
 
-Unfortunately, averaging over inputs with fixed weights is much more challenging than avering over weights with fixed inputs. We will make one key approximation that will let us calculate this quantity
+We'll have to be really carefu
 
-#### Intuition
+**Property 1: Within a layer, the sample variance of every neuron is the same**
 
-#### Calculation
-In terms. Basically we will assume we have a large layer width and we will treat each of the neurons as independent over samples.
 
-**Approximation 1:** Self-averaging Variance
-**Approximation 2:** Gaussian fluctuations
+If you are convinced by the experiments that this is a reasonable approximation, I suggest moving on to the next section. The justification for this is a little hairy.
 
-**Mean Field Approximation:** We will approximate our networks as wide and assume each preactivation is an independent random variable over the sample distribution
+This is actually quite a subtle point; within a layer, neither the sample mean $\langle y \rangle$ nor the sample 2nd moment $\langle y^2 \rangle$ are the same for all preactivations. They depend strongly on the initial weight configuration. But their difference $\langle y^2 \rangle - \langle y \rangle^2$ is the same. What gives?
 
-**Step 1:** First we'll show that with our mean-field assumption, the sample variance of $y$ is *self-averaging*. This means that for nearly all networks in our ensemble, the sample variance of $y$ is roughly same as the average:
+Here is where we will use our wide network + random enough assumptions. Formally, we wish to show that the variance of $y$ is a *self-averaging* quantity. This means that for nearly all networks in our ensemble, the sample variance of $y$ is roughly same as the average:
 $$ \langle y_l^2 \rangle - \langle y_l \rangle^2 \approx \llangle \langle y_l^2 \rangle - \langle y_l \rangle^2 \rrangle $$
-
-This will greatly simplify our calculation as we will now be able to average over configurations of weights.
 
 To show this theoretically, let's use our formula $y_i = \sum_j W_{ij} x_j$:
 $$ \langle y_l^2 \rangle - \langle y_l \rangle^2 = \mathbf{w}^T C \mathbf{w} $$
@@ -239,35 +207,88 @@ $$ \llangle v^2 \rrangle^2 = \left[\frac{1}{N} \sum_i \lambda_i \right]^2 \qquad
 
 where $\lambda_i$ are the eigenvalues of the correlation matrix
 
- neither $\langle y^2 \rangle$ nor $\langle y^2 \rangle$ are self-averaging quantities
-$$ \langle y_l^2 \rangle - \langle y_l \rangle^2 \approx \llangle \langle y_l^2 \rangle - \langle y_l \rangle^2 \rrangle $$
+Here is where we cheat and can invoke a mean-field approximation. If we assume that all the $x_i$ are in fact independent, and we assume we have infinitely many samples, then the covariance matrix $C$ will have small second moment.
+
+Ok, dang
+
+**Property 2: Fluctuations are Gaussian:**
+$$ \nu_l \sim \mathcal{N}(0, v_l^2) $$
+
+This might seem. Product can be non-Gaussian, Mean field over weights. This means that yes, everything in next layer is gaussian.
+
+
+**Property 2: The mean of each neuron is Gaussian random variable:**
+
+$$ \text{network randomness: } \; \mu_l \sim \mathcal{N}(0, m_l^2) $$
+
+**Property 3: The sum of m and v is constant with depth**
+This is just kaiming init
+
+**Property 3: The variance follows the iterated mapping:**
+
+$$ K(c) = c \left[ 1 + \frac{1}{\pi} \left(\sqrt{1/c^2 - 1} - \cos^{-1}(c)) \right) \right] $$
+where $c^2 = \frac{m^2}{m^2+v^2}$
+
+
+**Step 1:** Without any approximations, we can relate the typical sample variance of a preactivation in layer $l$ to the typical sample variance of the activation.
+
+$$ \llangle \langle y_{l+1}^2 \rangle - \langle y_{l+1} \rangle^2 \rrangle = (2/N) \left[ \llangle \langle f(y_{l})^2 \rangle \rrangle - \llangle \langle f(y_{l}) \rangle^2 \rrangle \right] $$
+
+The real challenge will be in dealing with the nonlinearity. Unfortunately, its not going to be valid to swap the order of expectation.
 
 **Step 2:**
-$$ y = \mu + \nu $$
-$$ \text{sample randomness: } \; \nu \sim \mathcal{N}(0, v^2) $$
-$$ \text{network randomness: } \; \mu \sim \mathcal{N}(0, m^2) $$
+Let's assume we know the sample mean of a preactivation. Then its easy to compute $\langle f(y_{l}) \rangle$. Its just the integral:
+
+$$ \langle f(y_{l}) \rangle = \int f(\mu + \nu) P(\nu) d\nu \qquad P(\nu) = \mathcal{N}(0, v_l^2) $$
+
+Now we can average this over weight configurations:
+
+$$ \llangle \langle f(y_{l}) \rangle^2 \rrangle = \int \left[\int f(\mu + \nu) P(\nu) d\nu\right]^2 P(\mu) d\mu $$
 
 **Step 3:**
-Now we are ready to procede to the main calculation. Rather than computing $\llangle y^2 \rrangle$ as we did, we will compute $\llangle \langle y \rangle^2 \rrangle$
+Actually computing the 2nd moment is quite easy:
+$$ \llangle \langle f(y_{l})^2 \rangle \rrangle = \int \int f(\mu + \nu)^2 P(\nu) P(\mu) d \nu d\mu $$
+The distribution of $(\mu+\nu)$ is a zero mean gaussian.
 
-The calculation procedes as it did for the network variance. Recall the forward pass of our fully connected net: $\mathbf{y}_l = \mathbf{W}_{l} f(\mathbf{y}_{l-1})$. Because fact elements of $\mathbf{W}$ and $\mathbf{y}_{l-1}$ have identical and independent distributions over weights, we can write the variance of an element of $\mathbf{y}_l$ as:
-
-$$ \llangle \langle y_l \rangle^2 \rrangle = 2 \llangle \langle f(y_{l-1}) \rangle^2 \rrangle $$
-
-Assuming we know $\langle y_{l-1}\rangle$, it is simple enough to calculate:
-
-$$ \langle f(y_{l-1}) \rangle = \int f(\mu+\nu) P(\nu) d\nu $$
-
-And we can average this over weights:
-
-$$ \llangle \langle f(y_{l-1}) \rangle^2 \rrangle = \int \left[\int f(\mu+\nu) P(\nu) d\nu \right]^2 P(\mu) d \mu $$
+This is very similar to the calculation done in previous papers. In fact, we could have seen used their result to derive this. The observation is that $\llangle \langle f(y_{l})^2 \rangle \rrangle = \langle \llangle f(y_{l})^2 \rrangle \rangle$. We could integrate over weights first, then average this over inputs.
 
 **Step 4:**
-$$ \int \left[\int f(\mu+\nu) P(\nu| \mu) d\nu \right]^2 P(\mu) d \mu = K(m,v)$$
+Now we have concrete expressions for both terms. We can do some algebraic manipulation to rewrite this into.
 
+This is just the arccosine kernel.
+
+Figure
 
 ## Discussion
-#### Batch Normalization and Layer Normalization
-#### Relationship to other works
-#### Nearly Linear Networks and Edge of Chaos
+So apparently the statement "Kaiming initialization preserves variance" is actually pretty subtle. Its true if you compute the variance over weight randomness. But the variance over samples, arguably the more relevant quantity in practical deep learning, actually decays with depth!
+
+#### Batch/Layer/Group Normalization
+Typically, people think of normalization schemes as ways to "reduce covariate shift, smooth loss surface, etc" but we can use our theory to understand how popular normalization schemes actually alter the initialization of a network.
+
+Standard normalization schemes normalize preactivations:
+$$ y \leftarrow \frac{y - \mu}{ \sigma } $$
+
+Batch Normalization divides every preactivation by its *batch mean* and *batch variance*. When your batch is large, these will be closely related to the sample mean, and sample variance. This implies that every preactivation will be zero mean and unit variance, a big difference from the unnormalized case!
+
+Layer Normalization uses statistcs over computed layer, which we've argued are closely related to network mean and variance. So this might not have such a big effect, at least in the wide network case. Is this a possible source of the discrepancy in training between layer and batch norm?
+
+Group Normalization is something like a mix between the Batch and Layer Normalization. It normalizes with the mean and variance over subsets of neurons in a layer.
+
 #### Implications for Training
+The real question is "does any of this matter for training?" My answer is definitely YES, IT CAN MATTER. In fact the whole reason I wrote this post was that I was experimenting with various initializations for training UNets and I observed that dividing by the mean and standard deviation of each preactivation, rather than over a layer, seemed to have a noticable speedup to training.
+
+This originally confused me, as i incorrectly thought they would be the same.
+
+<p align="center">
+  <img src="/assets/learning_curves.png">
+</p>
+
+The question of does it always matter, when does it matter? That im less sure about. Check out David Page's post for some info.
+
+#### Random ReLU networks map all inputs to the same output
+On the more theoretical side, there have been a number of works that get to the same basic conclusion. Here is an alternate interpretation
+
+#### Random ReLU networks are nearly linear
+Its mostly linear
+
+#### Other non-linearities
