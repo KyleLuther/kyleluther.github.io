@@ -15,7 +15,7 @@ $$
 </div>
 
 <p align="center">
-  <img src="/assets/net-layer-sample-init/samplelayer_randomness.png">
+  <img src="/assets/net_layer_sample_init/samplelayer_randomness.png">
 </p>
 
 <!-- *Preactivation distributions due to weight randomness (solid histograms) and sample randomness (red histogram) in random network initialized with Kaiming initialization* -->
@@ -36,7 +36,7 @@ With mild assumptions on the input distribution, we can actually compute the var
 We are going to examine neuron distributions in the simplest (most boring) network we can. Our network will be a 50 layer, fully connected, 1024 neuron wide, feedforward network.
 
 <p align="center">
-  <img src="/assets/net-layer-sample-init/kaiming-net.png">
+  <img src="/assets/net_layer_sample_init/kaiming-net.png">
 </p>
 
 The forward pass of our network is defined by:
@@ -70,7 +70,7 @@ $$ \llangle y_l \rrangle = \int y_l P(y_l | \mathbf{x}_0 ) d\mathbf{W}_1 d\mathb
 To empirically visualize this distribution, we pick a single input $\mathbf{x}_0$ and randomly sample 1000 different networks. In layers 1,5,10,50 we then pick a single neuron and visualize its distribution over the 1000 randomly generated networks:
 
 <p align="center">
-  <img src="/assets/net-layer-sample-init/network_randomness.png">
+  <img src="/assets/net_layer_sample_init/network_randomness.png">
 </p>
 
 Ok, these distributions are boring. We just see a unit Gaussian at each layer.  But it's good that this is boring; Kaiming initialization is supposed to preserve the variance of each of these distributions.
@@ -107,7 +107,7 @@ $$ P(y_l | \mathbf{x}_0, \mathbf{W}_1, \mathbf{W}_2, ..., \mathbf{W}_{l-1} ) \qq
 To visualize this distribution, we can sample a *single* fixed network (instead of 1000 like we did before) and now visualize the distribution of all preactivations in a layer:
 
 <p align="center">
-  <img src="/assets/net-layer-sample-init/layer_randomness.png">
+  <img src="/assets/net_layer_sample_init/layer_randomness.png">
 </p>
 
 These look similar to the distributions due to network randomness (though there are some finite width effects that start to show up by layer 50). So long as the network is sufficiently *wide*, these distributions will be nearly identical to the distributions in the previous section that we got by allowing weight in every layer to fluctuate.
@@ -124,7 +124,7 @@ This distribution is now a function of the weights in all layers (so this can be
 To visualize this distribution, we generate a single network with Kaiming initialization, and this time generate 1000 different input samples. We'll visualize the empirical distribution over samples of a neurons in layers 1,5,10,50. To show that these distributions depend on the weights in a non-trivial way, we'll repeat this process 3 times to get 3 different distributions.
 
 <p align="center">
-  <img src="/assets/net-layer-sample-init/sample_randomness.png">
+  <img src="/assets/net_layer_sample_init/sample_randomness.png">
 </p>
 
 Completely different from the network randomness setting! Interestingly it appears that as we look deeper and deeper in the network, the distribution of each preactivation collapses to small fluctuations around some large mean value. The network appears to be implementing a nearly constant function. The location of these mean values depend on the network weights.
@@ -238,7 +238,7 @@ The real question is "does any of this matter for training?" My answer is defini
 This originally confused me, as I incorrectly thought the two statistics would be similar. In our paper, we also trained a 10 layer "All Convolutional Net" and found that normalizing with the sample statistics at initialization outperformed normalization with layer statistics.
 
 <p align="center">
-  <img src="/assets/net-layer-sample-init/learning_curves.png">
+  <img src="/assets/net_layer_sample_init/learning_curves.png">
 </p>
 
 Interestingly, just reinitializing seemed to provide a substantial fractino of the speedup provided by Batch Norm.

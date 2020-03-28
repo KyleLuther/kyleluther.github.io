@@ -15,7 +15,7 @@ $$
 </div>
 
 <p align="center">
-  <img src="/assets/bn_gradient_simulation.png" width="500" height="250">
+  <img src="/assets/batchnorm_gradients/bn_gradient_simulation.png" width="500" height="250">
 </p>*Gradient histograms in a 10 layer network at initialization. The typical size of gradients is the same in all layers in a net without Batch Norm (left) and grows exponentially after inserting Batch Norm in every layer (right)*
 
 <!-- Most people who train deep networks know that [Batch Norm](https://arxiv.org/pdf/1502.03167.pdf){:target="\_blank"} makes the training process easier. They also know that the presence of *exploding gradients* makes the training process harder. So [recent work](https://openreview.net/pdf?id=SyMDXnCcF7){:target="\_blank"} by Yang et. al might seem quite surprising; they show that our beloved Batch Norm can actually *cause* exploding gradients, at least at initialization time. -->
@@ -34,7 +34,7 @@ Before our calculation, let's empirically show that "Batch Norm causes exploding
 Our net without Batch Norm, our "vanilla net", is shown below. Its a boring old 10 layer, feedforward, fully connected network of uniform layer width $N=1024$. We're using the ReLU nonlinearity so we'll initialize weights with [Kaiming initialization](https://arxiv.org/pdf/1502.01852.pdf){:target="\_blank"}. This means we'll set all the biases to zero and sample every element of $W$ from a zero mean Gaussian with variance $\sqrt{2/N}$.
 
 <p align="center">
-  <img src="/assets/vanilla_net.png">
+  <img src="/assets/batchnorm_gradients/vanilla_net.png">
 </p>
 
 Our inputs $\mathbf{x}\_0(t)$ are 512 random Gaussian vectors. We'll compute a linear loss over the network's outputs: $E = \sum_{t=1}^{512} \mathbf{w} \cdot \mathbf{x}_{10}(t)$. We choose $\mathbf{w}$ by drawing it from a unit Gaussian. Now we have everything we need to compute the gradients $dE/d\mathbf{x}_l(t)$ at each layer $l$ in the vanilla network (We'll use Pytorch to automate this process for us).
@@ -42,13 +42,13 @@ Our inputs $\mathbf{x}\_0(t)$ are 512 random Gaussian vectors. We'll compute a l
 Now we take that exact network, loss, and set of input vectors, but insert Batch Normalization before the ReLU in every layer:
 
 <p align="center">
-  <img src="/assets/bn_net.png">
+  <img src="/assets/batchnorm_gradients/bn_net.png">
 </p>
 
 Again we can compute gradients $dE/d\mathbf{x}_l(t)$ at each layer. Now we'll visualize the gradient histograms in each layer for the vanilla and Batch Norm net. Each histogram is made up of $512\times1024$ scalars (gradients for 512 inputs $\times$ 1024 features):
 
 <p align="center">
-  <img src="/assets/bn_gradient_simulation.png" width="500" height="250">
+  <img src="/assets/batchnorm_gradients/bn_gradient_simulation.png" width="500" height="250">
 </p>
 
 In the vanilla network, the gradient histograms are basically the same in every layer. However, after inserting Batch Norm, the gradients actually grow with decreasing layer. In fact, the widths of these histograms grow *exponentially*. It is in this sense that gradients explode. The rest of this post will be devoted to calculating how the widths of these histograms grow.
@@ -58,7 +58,7 @@ In this section we'll review the details of Batch Normalization and how it modif
 
 #### Forward Pass
 <p align="center">
-  <img src="/assets/module_forward.png">
+  <img src="/assets/batchnorm_gradients/module_forward.png">
 </p>
 
 Each layer in our normalized network contains 3 modules: matrix multiply, Batch Norm, and ReLU. These are shown in the diagram above.
@@ -69,7 +69,7 @@ Because we are only going to examine networks at initializion time, we have made
 
 #### Backward Pass
 <p align="center">
-  <img src="/assets/module_backward.png">
+  <img src="/assets/batchnorm_gradients/module_backward.png">
 </p>
 
 The diagram above shows the backwards pass through each module. Recall that the backwards pass applies the chain rule to compute gradients with respect to a module's inputs, given gradients with respect to the module's outputs.
@@ -92,7 +92,7 @@ The double brackets $\llangle \cdot \rrangle$ indicate an average over *weights 
 To compute the typical squared gradient, we just need to square and average over weights each backwards pass equation for the three modules comprising each layer. Before deriving these, I'll just show the results:
 
 <p align="center">
-  <img src="/assets/typical_bn.png">
+  <img src="/assets/batchnorm_gradients/typical_bn.png">
 </p>
 
 The ReLU module halves the average squared gradients and the matrix multiply module doubles the average squared gradient. So the combination preserves average squared gradients. In fact this was part of the original motivation given in the Kaiming initialization paper; set the weight variance to $2/N$ so gradients are preserved in networks without Batch Norm.
@@ -218,7 +218,7 @@ $$ \langle y^2 \rangle - \langle y \rangle^2 \approx \llangle \langle y^2 \rangl
 We can empirically show this self-averaging assumption holds in our simulation. We'll do so by visualizing the distribution of the first 3 elements of $\mathbf{y}$ in the 5th layer of our Batch Normalized net.
 
 <p align="center">
-  <img src="/assets/y-distribution.png">
+  <img src="/assets/batchnorm_gradients/y-distribution.png">
 </p>
 
 Interestingly each element of $\mathbf{y}$ seems to have a different mean, but we can see that fluctuations around the mean appear to have identical distributions. This means that the variance of every element is the same (roughly).
@@ -237,7 +237,7 @@ $$ \lllangle \left(\frac{dE}{dx_{l-1}}\right)^2 \rrrangle \approx \left(\frac{\p
 Of course we can empirically test our approximations by measuring the width of the gradient histograms in each layer of our simulation:
 
 <p align="center">
-  <img src="/assets/hist_widths.png">
+  <img src="/assets/batchnorm_gradients/hist_widths.png">
 </p>
 
 I also ran a 3rd experiment, this time freezing $\mu$ and $\sigma$. So the forward pass of this network was identical to the Batch Norm network, but gradients were not backpropagated through the $\mu$ and $\sigma$. Earlier we predicted that expect possibly in the final layer, gradient backpropagation probably wasn't changed much by $\mu$ and $\sigma$ in a random network.
@@ -250,7 +250,7 @@ Before concluding, we'll give one more way to think about the exploding gradient
 This probably makes more sense if we just look at the distribution of inputs to ReLU in the vanilla and normalized networks:
 
 <p align="center">
-  <img src="/assets/forward_pass.png">
+  <img src="/assets/batchnorm_gradients/forward_pass.png">
 </p>
 
 In deeper layers of the vanilla net, some of the preactivations lie mostly on one side of the nonlinearity. When this happens, the ReLU activation either computes the function $x_i=y_i$ for all inputs or it computes $x_i=0$ for all inputs; either way, it's acting in a linear fashion. This does not happen in the normalized network because inputs to the ReLU are centered by Batch Norm
