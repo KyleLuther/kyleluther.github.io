@@ -119,70 +119,104 @@ Now things will get interesting. We'll visualize a preactivation's distribution 
 
 $$ P(y_l | \mathbf{W}_1, \mathbf{W}_2, ..., \mathbf{W}_{l} ) \qquad \mathbf{x}_0 \sim Q(\mathbf{x}_0) $$
 
-This distribution is now a function of the weights in all layers (so this can be defined not just for random networks, but trained networks too). However, if we look at networks with Gaussian weights, this distribution will tend to take on certain properties.
+This distribution is now a function of both the sample distribution $Q$ and the weights $\mathbf{W}\_1, \mathbf{W}\_2, ..., \mathbf{W}\_{l}$ in all layers up to layer $l$.
 
-To visualize this distribution, we generate a single network with Kaiming initialization, and this time generate 1000 different input samples. We'll visualize the empirical distribution over samples of a neurons in layers 1,5,10,50. To show that these distributions depend on the weights in a non-trivial way, we'll repeat this process 3 times to get 3 different distributions.
+So this distribution can be defined not just for random networks, but trained networks too. By carefully choosing the weights we can make this distribution look essentially any way we want, in fact the whole point of backprop-based training is make the network outputs have some desired distribution.
+
+However, if we look at the "typical" behavior of this distribution in our ensemble of networks with Gaussian weights, we'll see that it tends to take on certain regular properties, which we'll describe below.
+
+To visualize a typical sample distribution in a Kaiming-initialized network, we generate a single network with Kaiming initialization, and this time generate 1000 different input samples. For simplicity, we'll choose use Gaussian white noise inputs:
+
+$$ Q = \mathcal{N} (0, I) $$
+
+We'll later argue that the typical sample distribution of a preactivation in a random neural network only depends very weakly on the precise form of the input distribution.
+
+We'll visualize the empirical distribution over samples of a neuron in layers 1,5,10,50. To show that these distributions depend on the weights in a non-trivial way, we'll repeat this process 3 times to get 3 different distributions in each layer. Each color corresponds to a network initialized with a different random seed.
 
 <p align="center">
   <img src="/assets/net_layer_sample_init/sample_randomness.png">
 </p>
 
-Completely different from the network randomness setting! Interestingly it appears that as we look deeper and deeper in the network, the distribution of each preactivation collapses to small fluctuations around some large mean value. The network appears to be implementing a nearly constant function. The location of these mean values depend on the network weights.
+Completely different from the network randomness setting! Interestingly it appears that as we look deeper and deeper in the network, the distribution of each preactivation collapses to small fluctuations around some large mean value. The location of the mean value however, seems to depend on choice of random seed.
 
-### Mean-Fluctuation Decomposition
-We can qualitatively describe the phenomenon. Unfortunately rigorous treatment will not be possible.
+Instead of visualizing the sample distribution of a single neuron in each layer, we visualize the the distribution of *all* neurons over samples, i.e.  we can visualize:
 
-Our first step will be to decompose every preactivation into the sum of two terms, its mean $\mu$ over samples and fluctuations $\nu$ around the mean:
+$$ P(y_l | \mathbf{W}_1, \mathbf{W}_2, ..., \mathbf{W}_{l-1} ) \qquad \mathbf{x}_0 \sim Q(\mathbf{x}_0) \qquad \mathbf{W}_{l} \sim \mathcal{N}(0, 2/N) $$
+
+I show these histograms as red curves overlayed on top of the 3 previous single neuron histograms (this is the figure shown at the beginning of thiss post).
+
+<p align="center">
+  <img src="/assets/net_layer_sample_init/samplelayer_randomness.png">
+</p>
+
+These histograms look more similar to the distributions arising from network or layer randomness, just zero mean Gaussian of constant width in each layer. These distributions are now arising from both layer and sample randomness. You can't see the interesting behavior if you average over weights.
+
+The rest of this section will be dedicated to more quantiatively describing and deriving this behavior.
+
+### Network Means and Sample Means
+We will have to be careful about which source of randomness we are averaging over. We will indicate averages over a quantity due to randomness in weights in every layer with double brackets:
+
+$$ \llangle y \rrangle = \int y \; P(y | \mathbf{x}_0 ) \; d\mathbf{W}_1 d\mathbf{W}_2 ... d\mathbf{W}_L $$
+
+We will indicate averages due to randomness in samples with single brackets:
+
+$$ \langle y \rangle = \int y \; P(y | \mathbf{W}_1 \mathbf{W}_2 ... \mathbf{W}_L ) \; d\mathbf{x}_0 $$
+
+Note that the network mean $\llangle y \rrangle$ is as function of the input $\mathbf{x}_0$ and the sample mean $\langle y \rangle$ is a function of the network weights. We can also average over both sources of randomness, in which case the order does not matter:
+
+$$ \llangle \langle y \rangle \rrangle = \langle \llangle y \rrangle \rangle $$
+
+<!-- ### Mean-Fluctuation Decomposition
+Now we're ready to describe what we wish to calculate. We can decompose every preactivation into the sum of two terms, its mean $\mu$ over samples and fluctuations $\nu$ around the mean:
 
 $$ y(w,t) = \mu(w) + \nu(w,t) $$
 
-Note that the $\mu$ only depends on the network weights, which we indicate by $\mu(w)$, and $\nu$ depends both on the input and weights, which we indicate by $\nu(w,t)$. Now we will make two approximations.
+Note that the sample mean $\mu$ only depends on the network weights, which we indicate by $\mu(w)$, and the fluctuation $\nu$ depends both on the input and weights, which we indicate by $\nu(w,t)$. -->
 
-### Approximate Calculation (Wide net + random inputs)
+We have seen that the network average of every preactivation $\llangle y \rrangle$ is zero and the network variance $\llangle y^2 \rrangle - \llangle y \rrangle^2$ is the same in every layer. Intuitively, it seems natural to compute the sample mean $\langle y \rangle$ and the sample variance $\langle y^2 \rangle - \langle y \rangle^2$ of neurons.
 
-If we are willing to make some assumptions, we can calculate the precise amount by which the variance of each pre-activation shrinks with layer.
+Unfortunately this is not so simple. Each random seed used to initialize our networks resulted in a very different sample mean for each neuron. The distribution of sample means appeared to be centered around zero.
 
-**Approximation 1: Within a layer, the sample variance of every neuron is the same**
+So rather than calculate the sample mean of a neuron for a single network, we will try to describe its typical behavior in random networks. Specifically we will calculate the network variance of the sample mean:
 
+$$ m^2 = \llangle \langle y \rangle^2 \rrangle - \llangle \langle y \rangle \rrangle^2 = \llangle \langle y \rangle^2 \rrangle $$
 
-If you are convinced by the experiments that this is a reasonable approximation, I suggest moving on to the next section. The justification for this is a little hairy.
+To describe the sample variance, we will try to compute the average of the sample variance over network configurations:
 
-This is actually quite a subtle point; within a layer, neither the sample mean $\langle y \rangle$ nor the sample 2nd moment $\langle y^2 \rangle$ are the same for all preactivations. They depend strongly on the initial weight configuration. But their difference $\langle y^2 \rangle - \langle y \rangle^2$ is the same. What gives?
+$$ v^2 = \llangle \langle y^2 \rangle - \langle y \rangle^2 \rrangle $$
 
-Here is where we will use our wide network + random enough assumptions. Formally, we wish to show that the variance of $y$ is a *self-averaging* quantity. This means that for nearly all networks in our ensemble, the sample variance of $y$ is roughly same as the average:
-$$ \langle y_l^2 \rangle - \langle y_l \rangle^2 \approx \llangle \langle y_l^2 \rangle - \langle y_l \rangle^2 \rrangle $$
+To actually compute these two quantities, we will need to assume wide networks and "random-enough" inputs. In this regime, we'll see that nearly all neurons in the ensmble of random networks have the same sample variance.
 
-To show this theoretically, let's use our formula $y_i = \sum_j W_{ij} x_j$:
-$$ \langle y_l^2 \rangle - \langle y_l \rangle^2 = \mathbf{w}^T C \mathbf{w} $$
+Before moving on, we note that the sum of the sample mean and variance is just the variance of a neuron due to randomness in weights nad smaples:
 
-To show that $\langle y_l^2 \rangle - \langle y_l \rangle^2$ is self-averaging, we want to show that  the variance over weights of the sample variance is small:  
+$$ m^2 + v^2 = \llangle \langle y^2 \rangle \rrangle $$
 
-$$ \llangle (v^2)^2 \rrangle - \llangle v^2 \rrangle^2 \approx 0 $$
+### Calculating $m_l$ and $v_l$ (Wide net + random inputs)
+To actually compute $m^2$ and $v^2$, we will need 3 approximations. We will justify these approximations later as a consequence of wide networks and random inputs.
 
-Yikes. But let's use our formula $y_i = \sum_j W_{ij} x_j$ to write $\langle y_l^2 \rangle - \langle y_l \rangle^2 = \mathbf{w}^T C \mathbf{w}$
+**Approximation 1: Within a layer, the sample variance of every neuron is the same as the network averaged sample variance:**
 
-$$ \llangle v^2 \rrangle^2 = \left[\frac{1}{N} \sum_i \lambda_i \right]^2 \qquad \llangle v^4 \rrangle = \frac{1}{N} \sum_i \lambda_i^2 $$
+$$ \langle y^2 \rangle - \langle y \rangle^2 \approx \llangle \langle y^2 \rangle - \langle y \rangle^2 \rrangle $$
 
-where $\lambda_i$ are the eigenvalues of the correlation matrix
+This is actually a pretty subtle point. Within a layer, neither the sample mean $\langle y \rangle$ nor the sample 2nd moment $\langle y^2 \rangle$ are the same as their network average. They depend strongly on the initial weight configuration. But their difference $\langle y^2 \rangle - \langle y \rangle^2$ is the same.
 
-Here is where we cheat and can invoke a mean-field approximation. If we assume that all the $x_i$ are in fact independent, and we assume we have infinitely many samples, then the covariance matrix $C$ will have small second moment.
+In the language of physicists we would say that the variance of $y$ is a *self-averaging* quantity.
 
-Ok, dang
+**Approximation 2: A preactivation's distribution due to sample randomness is Gaussian:**
 
-**Approximation 2: Fluctuations are Gaussian:**
-$$ \nu_l \sim \mathcal{N}(0, v_l^2) $$
+$$ y_l ~ \sim \mathcal{N}(\langle y_l \rangle, v_l^2) $$
 
-This might seem. Product can be non-Gaussian, Mean field over weights. This means that yes, everything in next layer is gaussian.
+Note that the mean of the preactivation over samples is generally nonzero. Also, because we have assumed the variance of every preactivation is $v^2_l$, we know the variance of this distribution.
 
+Also, this does NOT require the inputs to be Gaussian. Using the relationship $y_i = \sum_j W_{ij} x_j$, we can see that $y$ is the sum of $N$ random variables (in this case the $x_j$ are the random variables because we are only considering sample randomness) If there is enough randomness in the $x$ then $y$ will tend towards a gaussian as a consequence of the central limit theorem.
 
-**Approximation 3: The mean of each neuron is Gaussian random variable:**
+**Approximation 3: The mean of every neuron has a Gaussian distribution over weight configurations:**
 
-$$ \text{network randomness: } \; \mu_l \sim \mathcal{N}(0, m_l^2) $$
+$$ \langle y_l \rangle \sim \mathcal{N}(0, m_l^2) $$
 
-**Property 3: The sum of m and v is constant with depth**
-This is just kaiming init
+Using the relationship $y_i = \sum_j W_{ij} x_j$ we can see that the sample mean is the sum of $N$ random variables: $\langle y_i \rangle = \sum_j W_{ij} \langle x_j \rangle$. This time the random variables are the both $W_{ij}$ and $x_j$ since we are considering in the weights (recall the $x_j$ are functions of weights in preceding layers).
 
-**Property 3: The variance follows the iterated mapping:**
+**Result: The sample variance follows the iterated mapping:**
 
 $$ K(c) = c \left[ 1 + \frac{1}{\pi} \left(\sqrt{1/c^2 - 1} - \cos^{-1}(c)) \right) \right] $$
 where $c^2 = \frac{m^2}{m^2+v^2}$
@@ -216,6 +250,32 @@ Now we have concrete expressions for both terms. We can do some algebraic manipu
 This is just the arccosine kernel.
 
 Figure
+
+### Justifying the approximations
+
+
+This is actually a pretty subtle point. Within a layer, neither the sample mean $\langle y \rangle$ nor the sample 2nd moment $\langle y^2 \rangle$ are the same as their network average. They depend strongly on the initial weight configuration. But their difference $\langle y^2 \rangle - \langle y \rangle^2$ is the same. What gives?
+
+Just a warning, the justification for this approximation is a little invovled.
+You might be satisfied to just take this approximation as a given and move on to the next approximation. To show the sample variance of a neuron is very nearly equal to its average over network configurations, we are going to show that the network variance of the sample variance is small:
+
+$$ \llangle (\langle y^2 \rangle - \langle y \rangle^2)^2 \rrangle - \llangle \langle y^2 \rangle - \langle y \rangle^2  \rrangle^2 \approx 0 $$
+
+Yikes... $\mathbf{y} = \mathbf{W} \mathbf{x}$
+
+$$ \llangle \text{Tr}[ \mathbf{W} \mathbf{C} \mathbf{W}^{\top} \mathbf{W} \mathbf{C} \mathbf{W}^{\top}  ] \rrangle $$
+
+where $C = \langle \mathbf{x} \mathbf{x}^{\top} \rangle - \langle \mathbf{x} \rangle \langle \mathbf{x} \rangle^{\top}$ is the sample covariance matrix.
+
+$$ \llangle v^2 \rrangle^2 = \left[\frac{1}{N} \sum_i \lambda_i \right]^2 \qquad \llangle v^4 \rrangle = \frac{1}{N} \sum_i \lambda_i^2 $$
+
+where $\lambda_i$ are the eigenvalues of the correlation matrix
+
+Here is how we can argue.
+
+Here is where we cheat and can invoke a mean-field approximation. If we assume that all the $x_i$ are in fact independent, and we assume we have infinitely many samples, then the covariance matrix $C$ will have small second moment.
+
+Ok, dang
 
 ## Discussion
 So apparently the statement "Kaiming initialization preserves variance" is actually pretty subtle. Its true if you compute the variance over weight randomness. But the variance over samples, arguably the more relevant quantity in practical deep learning, actually decays with depth!
