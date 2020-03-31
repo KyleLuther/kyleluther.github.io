@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Separating the Sources of Randomness in Neural Networks at Initialization Time"
-date: 2020-02-18 10:00:00
+date: 2020-03-31 10:00:00
 keywords: variance preservation, Kaiming initialization, sample randomness
 ---
 <div style="display:none">
