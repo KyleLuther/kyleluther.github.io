@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Batch Norm Causes Exploding Gradients"
+title: "Why Batch Norm Causes Exploding Gradients"
 date: 2020-02-18 10:00:00
 keywords: Batch Normalization, exploding gradients
 ---
