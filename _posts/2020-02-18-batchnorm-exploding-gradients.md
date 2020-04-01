@@ -207,7 +207,7 @@ It is simple enough to compute the average minibatch variance $\llangle \sigma^2
 
 $$ \llangle \sigma^2 \rrangle = 2 \llangle \langle x^2 \rangle - \langle x \rangle^2 \rrangle = \frac{\pi-1}{\pi}$$
 
-**Step 3:** We've computed $\llangle \sigma^2 \rrangle$, but this is generally different from $\llangle 1/\sigma^2 \rrangle$, which is the quantity we wanted. We'll argue that in our experiment, these are actually the same because fluctuations of $\sigma^2$ are small so $\llangle \frac{1}{\sigma^2} \rrangle \approx frac{1}{\llangle \sigma^2 \rrangle}$
+**Step 3:** We've computed $\llangle \sigma^2 \rrangle$, but this is generally different from $\llangle 1/\sigma^2 \rrangle$, which is the quantity we wanted. We'll argue that in our experiment, these are actually the same because fluctuations of $\sigma^2$ are small so $\llangle \frac{1}{\sigma^2} \rrangle \approx \frac{1}{\llangle \sigma^2 \rrangle}$
 
 In physics terms, we argue that $\sigma^2$, the minibatch variance of an element of $\mathbf{y}$, is a *self-averaging* quantity. This means that for nearly every configuration of weights, $\sigma^2$ is roughly the same[^2]:
 
