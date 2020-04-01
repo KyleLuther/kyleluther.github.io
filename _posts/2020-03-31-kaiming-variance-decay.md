@@ -25,11 +25,11 @@ This prescription is wide spread in the deep learning community and its easy to 
 
 For nets with ReLU nonlinearity, we implement this prescription by drawing weights from a zero mean distribution with variance $\frac{2}{\text{fan_in}}$. This is known as [Kaiming initialization](https://arxiv.org/pdf/1502.01852.pdf){:target="\_blank"}. Normalization schemes like Batch/Layer/Group/etc. Norm make variance preservation even easier to implement; by design they normalize neurons so they are zero mean and unit variance at init time.
 
-But there is a subtlely here, over what distribution are the mean and variance computed? Kaiming preserves the variance when computed over randomness in *weights*. Batch Norm normalizes neurons using *minibatch* statistics. Layer Norm uses the mean and variance over a *layer*. Group norm uses mean and variance computed over a *group* (basically a subset of neurons in a layer).
+But there is a subtlely here, over what distribution are the mean and variance computed? Kaiming preserves the variance when computed over randomness in *weights*. [Batch Norm](https://arxiv.org/abs/1502.03167){:target="\_blank"} normalizes neurons using *minibatch* statistics. [Layer Norm](https://arxiv.org/abs/1607.06450){:target="\_blank"} uses the mean and variance over a *layer*. [Group Norm](https://arxiv.org/abs/1803.08494){:target="\_blank"} uses mean and variance computed over a *group* (basically a subset of neurons in a layer).
 
-In this post, we'll identify that there are two fundamental sources of randomness at initialization time: **network randomness** (randomness in weight configurations), and **sample randomness** (randomness in the input distribution). We'll show that neuron distributions arising from the two sources can be very different from each other.
+In this post, we'll identify two fundamental sources of randomness at initialization time: **network randomness** (randomness in weight configurations), and **sample randomness** (randomness in the input distribution). We'll show that neuron distributions arising from the two sources can be very different from each other.
 
-As expected, when you compute the mean and variance over random network configurations, you find that every neuron is zero mean and has the same variance. However, if you generate a single network, and compute the mean and variance of a neuron over the sample distribution only, we find the variance decays with depth! With two *mean-field approximations*, we can actually compute the rate at which this variance decays.
+As expected, we find that every neuron is zero mean and has the same variance over random network configurations. However, if you generate a single network, and compute the mean and variance of a neuron over the sample distribution only, we find the variance decays with depth! With two *mean-field approximations*, we can actually compute the rate at which this variance decays.
 
 This post is mostly derived from a [paper](https://arxiv.org/pdf/1902.04942.pdf){:target="\_blank"} my advisor and I wrote. Some of the calculations are different in an attempt to be less formal but hopefully simpler to understand.
 
@@ -291,10 +291,10 @@ This makes sense, both matrix multiplication and the $\text{ReLU}$ nonlinearity 
 
 As an exercise, it might be worth using this integral approach to confirm that $\sigma_{l+1}^2 = \sigma_{l}^2$. This would be rederiving the result that Kaiming initialization preserves the total variance.
 
-### Intuitive Description of Sample Variance Decay
+<!-- ### Intuitive Description of Sample Variance Decay
 The forward pass in a neural net consists of two operations: matrix multiply and rectification. Rectification.
 
-The point is that on average, matrix multiplication preserves the
+The point is that on average, matrix multiplication preserves the -->
 
 ### Empirical Check
 We can empirically confirm our results. We simply initialize the same fully connected network we studied before and pass in a bunch of Gaussian white noise and calculate the ratio of the sample mean to standard deviation at each layer. We'll do this several times and for several different network widths. This figure is taken from our [paper](https://arxiv.org/pdf/1902.04942.pdf){:target="\_blank"}
