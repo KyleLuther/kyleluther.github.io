@@ -14,15 +14,15 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 title: Kyle Luther
-email: kluther@princeton.edu
-description: ...learning deeply...something something...deep learning
+# email: kluther@princeton.edu
+description: Built with Jekyll, inspired by <a href="https://jonbarron.info">Jon Barron</a>
 baseurl: "" # the subpath of your site, e.g. /blog
 # url: "" # the base hostname & protocol for your site, e.g. http://example.com
 # twitter_username: jekyllrb
 # github_username:  KyleLuther
 
-disqus:
-    shortname: kyleluther
+# disqus:
+    # shortname: kyleluther
 
 url: "https://kyleluther.github.io/"
 
