@@ -50,4 +50,4 @@ IEEE 16th International Symposium on Biomedical Imaging, 2019
 
 We use convolutional networks to segment microscopy images of brain tissue. Unlike previous approaches which detect boundaries and generate segments by filling in boundaries, we use a metric learning approach to assign all pixels from a neuron the same vector, while assigning different vectors to pixels from different objects.
 
-### Code
+<!-- ### Code -->
