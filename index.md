@@ -16,7 +16,7 @@ title: About
 
 Hi!
 
-I'm a 6th year physics PhD student at Princeton advised by [Sebastian Seung](https://twitter.com/sebastianseung?lang=en){:target="\_blank"}. My current research interests lie at the intersection of deep learning, computer vision, and computational neuroscience. Feel free to research out if you want to get in touch!
+I'm a 6th year physics PhD student at Princeton advised by [Sebastian Seung](https://twitter.com/sebastianseung?lang=en){:target="\_blank"}. My current research interests lie at the intersection of deep learning, computer vision, and computational neuroscience. Feel free to reach out if you want to get in touch!
 
 [email](mailto:kluther@princeton.edu) &nbsp; \| &nbsp;  [CV](/assets/CV.pdf) &nbsp; \| &nbsp; [Google Scholar](https://scholar.google.com/citations?hl=en&view_op=list_works&gmla=AJsN-F5e0yPGmYrQrZ9lske_v4RPq7xURWD5Z9iJGyfnmTQL4rYTaBSksBIrwBWBx732XmQAtC4IklkW_Y7KQPO32WMjzxA06w&user=JX_K0-QAAAAJ) &nbsp; \| &nbsp; [GitHub](https://github.com/KyleLuther)
 {: style="text-align: center"}
