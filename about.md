@@ -27,7 +27,7 @@ I'm a postdoctoral researcher at Princeton in the group led by [Sebastian Seung]
 ### Research
 <!-- Images: hxw = 175x225 -->
 ![image](/assets/tomography.png){:height="125px" width="150px"
-align="left" style="padding-bottom: 75px; padding-right: 38px; padding-left: 37px"}
+align="left" style="padding-bottom: 75px; padding-top: 25px; padding-right: 38px; padding-left: 37px"}
 Serial section electron tomography at scale  
 *Current research*
 
