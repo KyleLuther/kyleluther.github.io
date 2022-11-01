@@ -31,7 +31,7 @@ align="left" style="padding-bottom: 75px; padding-top: 25px; padding-right: 38px
 Serial section electron tomography at scale  
 *Current research*
 
-Large scale serial section microscopy currently faces two major challenges. One, the sections are too thin: at 40nm thick, the sections tend to crack, fold and generally fall apart. Two: the sections are too thick: neurites are occasionally smaller than 40nm and higher resolution is needed to trace them through adjacent sections. Can we solve both problems with serial section tomography to allow physically thicker sections, but virtually thinner sections?
+Large scale serial section microscopy currently faces two major challenges. One, the sections are too thin: at 40nm thick, the sections tend to crack, fold and generally fall apart. Two: the sections are too thick: neurites are occasionally smaller than 40nm and higher resolution is needed to trace them through adjacent sections. Can we solve both problems with serial section tomography to allow physically thicker but virtually thinner sections?
 
 ![image](/assets/sparsecoding_overview.png){:height="125px" width="200px"
 align="left" style="padding-bottom: 50px; padding-right: 25px"}
