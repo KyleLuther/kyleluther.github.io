@@ -18,7 +18,7 @@ redirect_from: /about/
 
 Hi!
 
-I'm a postdoctoral researcher at Princeton in the group led by [Sebastian Seung](https://seunglab.org/){:target="\_blank"}. My current research interests are in computer vision and computational imaging. 
+I'm a postdoctoral researcher at Princeton in the group led by [Sebastian Seung](https://seunglab.org/){:target="\_blank"}. My current research interests lie at the intersection of artificial intelligence, computer vision and computational imaging. 
 
 [email](mailto:kluther@princeton.edu) &nbsp; \| &nbsp;  [CV](/assets/CV.pdf) &nbsp; \| &nbsp; [Google Scholar](https://scholar.google.com/citations?hl=en&view_op=list_works&gmla=AJsN-F5e0yPGmYrQrZ9lske_v4RPq7xURWD5Z9iJGyfnmTQL4rYTaBSksBIrwBWBx732XmQAtC4IklkW_Y7KQPO32WMjzxA06w&user=JX_K0-QAAAAJ) &nbsp; \| &nbsp; [GitHub](https://github.com/KyleLuther)
 {: style="text-align: center"}
