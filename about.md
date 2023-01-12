@@ -53,7 +53,7 @@ We derive a network with online Hebbian learning rules capable of performing ker
 <br clear="all" />
 ![image](/assets/metriclearning3d_overview.png){:height="150px" width="200px"
 align="left" style="padding-bottom: 25px; padding-right: 25px"}
-[Learning and segmenting dense voxel embeddings for 3D neuron reconstruction](https://ieeexplore.ieee.org/abstract/document/9048957)  
+[Learning and segmenting dense voxel embeddings for 3D neuron reconstruction](https://ieeexplore.ieee.org/document/9489304)  
 Kisuk Lee, Ran Lu, **Kyle Luther**, H. Sebastian Seung  
 IEEE Transactions on Medical Imaging, 2021
 
@@ -80,7 +80,7 @@ We analyze convergence and duality guarantees in a recently proposed model of co
 <br clear="all" />
 ![image](/assets/metriclearning_overview.png){:height="150px" width="150px"
 align="left" style="padding-right: 38px; padding-left: 37px; padding-bottom: 75px"}
-[Learning metric graphs for neuron segmentation in electron microscopy images](https://ieeexplore.ieee.org/abstract/document/9048957)  
+[Learning metric graphs for neuron segmentation in electron microscopy images](https://ieeexplore.ieee.org/document/8759576)  
 **Kyle Luther**, H. Sebastian Seung  
 IEEE 16th International Symposium on Biomedical Imaging, 2019
 
