@@ -85,3 +85,6 @@ align="left" style="padding-right: 38px; padding-left: 37px; padding-bottom: 75p
 IEEE 16th International Symposium on Biomedical Imaging, 2019
 
 We use convolutional networks to assign an embedding vector to every pixel in 2D micrscopy images of brain tissue. These embedding vectors are then used to segment every neuron.
+
+<br clear="all" />
+Built with Jekyll
