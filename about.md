@@ -28,7 +28,7 @@ I'm a postdoctoral researcher at Princeton in the group led by [Sebastian Seung]
 <!-- Images: hxw = 175x225 -->
 ![image](/assets/tomography.png){:height="125px" width="150px"
 align="left" style="padding-bottom: 75px; padding-right: 38px; padding-left: 37px"}
-Serial section electron tomography at scale  
+[Serial section electron tomography at scale](https://github.com/KyleLuther/SerialTomo)
 *Current research*
 
 Large scale serial section microscopy currently faces two major challenges. One, the sections are too thin: at 40nm thick, the sections tend to crack, fold and generally fall apart. Two: the sections are too thick: neurites are occasionally smaller than 40nm and higher resolution is needed to trace them through adjacent sections. Can we solve both problems with serial section tomography to allow physically thicker but virtually thinner sections?
