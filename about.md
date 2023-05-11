@@ -25,14 +25,6 @@ I'm a postdoctoral researcher at Princeton in the group led by [Sebastian Seung]
 
 <br clear="all" />
 ### Research
-<!-- Images: hxw = 175x225 -->
-![image](/assets/tomography.png){:height="125px" width="150px"
-align="left" style="padding-bottom: 75px; padding-right: 38px; padding-left: 37px"}
-[Serial section electron tomography at scale](https://github.com/KyleLuther/SerialTomo)  
-*Current research*
-
-Large scale serial section microscopy currently faces two major challenges. One, the sections are too thin: at 40nm thick, the sections tend to crack, fold and generally fall apart. Two: the sections are too thick: neurites are occasionally smaller than 40nm and higher resolution is needed to trace them through adjacent sections. Can we solve both problems with serial section tomography to allow physically thicker but virtually thinner sections?
-
 ![image](/assets/sparsecoding_overview.png){:height="125px" width="200px"
 align="left" style="padding-bottom: 50px; padding-right: 25px"}
 [Sensitivity of sparse codes to image distortions](https://arxiv.org/abs/2204.07466)  
@@ -86,5 +78,12 @@ IEEE 16th International Symposium on Biomedical Imaging, 2019
 
 We use convolutional networks to assign an embedding vector to every pixel in 2D micrscopy images of brain tissue. These embedding vectors are then used to segment every neuron.
 
+<!-- Images: hxw = 175x225 -->
+![image](/assets/tomography.png){:height="125px" width="150px"
+align="left" style="padding-bottom: 75px; padding-right: 38px; padding-left: 37px"}
+[Serial section electron tomography at scale](https://github.com/KyleLuther/SerialTomo)  
+*Unpublished research*
+
+Large scale serial section microscopy currently faces two major challenges. One, the sections are too thin: at 40nm thick, the sections tend to crack, fold and generally fall apart. Two: the sections are too thick: neurites are occasionally smaller than 40nm and higher resolution is needed to trace them through adjacent sections. Can we solve both problems with serial section tomography to allow physically thicker but virtually thinner sections?
 <br clear="all" />
 Built with Jekyll
