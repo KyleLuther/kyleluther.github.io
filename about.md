@@ -18,9 +18,9 @@ redirect_from: /about/
 
 Hi!
 
-I'm a postdoctoral researcher at Princeton in the group led by [Sebastian Seung](https://seunglab.org/){:target="\_blank"}. My current research lies at the intersection of AI, computer vision and invariant representation learning. 
+I'm a researcher at OpenAI, generally interested in training really large neural networks. I completed my PhD in physics at Princeton, studying brain-inspired learning algorithms.
 
-[email](mailto:kluther@princeton.edu) &nbsp; \| &nbsp;  [CV](/assets/CV.pdf) &nbsp; \| &nbsp; [Google Scholar](https://scholar.google.com/citations?hl=en&view_op=list_works&gmla=AJsN-F5e0yPGmYrQrZ9lske_v4RPq7xURWD5Z9iJGyfnmTQL4rYTaBSksBIrwBWBx732XmQAtC4IklkW_Y7KQPO32WMjzxA06w&user=JX_K0-QAAAAJ) &nbsp; \| &nbsp; [GitHub](https://github.com/KyleLuther)
+[email](k3luther@gmail.com)
 {: style="text-align: center"}
 
 <br clear="all" />
