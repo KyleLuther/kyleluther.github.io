@@ -20,7 +20,7 @@ Hi!
 
 I'm a researcher at OpenAI, generally interested in training really large neural networks. I completed my PhD in physics at Princeton, studying brain-inspired learning algorithms.
 
-[email](k3luther@gmail.com)
+email: k3luther@gmail.com
 {: style="text-align: center"}
 
 <br clear="all" />
