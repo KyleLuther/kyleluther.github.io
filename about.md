@@ -16,11 +16,9 @@ redirect_from: /about/
 
 ![image](/assets/circular_profile.png){:height="175px" width="175px" style="float: right"}
 
-Hi!
+Exploring new directions in AI research. Previously I worked at OpenAI, and before that I completed my PhD in physics at Princeton, studying brain-inspired learning algorithms.
 
-I'm a researcher at OpenAI, generally interested in training really large neural networks. I completed my PhD in physics at Princeton, studying brain-inspired learning algorithms.
-
-email: k3luther@gmail.com
+linkedin: [https://www.linkedin.com/feed/](https://www.linkedin.com/in/kyle-luther-624448bb/)
 {: style="text-align: center"}
 
 <br clear="all" />
